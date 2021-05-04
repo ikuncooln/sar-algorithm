@@ -1,4 +1,6 @@
 *.dat
+*.tif
+*.tiff
 # Windows default autosave extension
 *.asv
 
