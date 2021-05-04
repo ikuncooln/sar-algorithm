@@ -39,8 +39,8 @@ theta_rc_deg = 0;
 delta_r = c/Fr/2;
 center_R0 = near_range + (x0-1+width/2)*delta_r;
 %% . focus
-% s = rd_big_func(s0, f0, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg );
-s = omega_k_func( s0, f0, Kr, Vr, Fr, Fa, center_R0, 0 );
+% s = rda(s0, f0, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg, flag );
+s = wk( s0, f0, Kr, Vr, Fr, Fa, center_R0, 0 );
 figure;
 img = abs(s);
 min_v = min(img(:));
@@ -50,8 +50,6 @@ imwrite(uint16(tmp), 'tmp.tif');
 img(img>255) = 255;
 imagesc(img);
 colormap('gray');
-
-
 
 a = abs(s);
 b = a(:);
