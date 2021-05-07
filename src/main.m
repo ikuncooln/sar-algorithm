@@ -1,4 +1,5 @@
-close all;clear all;
+close all;
+clear all;clc;
 % parameters
 azimuth_angle = 0.04;
 wave_length = 0.03125;
@@ -17,16 +18,27 @@ file_size = range_size * azimuth_size * 8;
 
 %% 1. read data
 x0 = 1; y0 = 1;
-height = 2048; width = 2048;
-data_file = 'E:/学校/研一下/SAR信号处理与运动补偿/h2/data_after_moco.dat';
+height = 4096; width = 4096;
+% data_file = 'E:/学校/研一下/SAR信号处理与运动补偿/h2/data_after_moco.dat';
+data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业/data_after_moco.dat';
+
 s0 = read_data( data_file, range_size, x0, y0, height, width);
 
 figure;
 imagesc(real(s0));
 colormap('gray');
+title('原始信号实部');
 figure;
+subplot 211
 plot(real(s0(1,:)));
-
+xlabel('时间（采样点)');
+ylabel('幅度');
+subplot 212
+f=(-range_sample_rate/2:range_sample_rate/width:range_sample_rate/2-range_sample_rate/width);
+plot(f/1e6,fftshift(abs(fft(real(s0(1,:))))));
+xlabel('频率MHz');
+ylabel('幅度');
+axis tight
 %% 2. convert the prameters to standar vaiables
 c = 299792458;
 lambda = wave_length;
@@ -38,9 +50,8 @@ Fa = prf;
 theta_rc_deg = 0;
 delta_r = c/Fr/2;
 center_R0 = near_range + (x0-1+width/2)*delta_r;
-%% . focus
-% s = rda(s0, f0, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg, flag );
-s = wk( s0, f0, Kr, Vr, Fr, Fa, center_R0, 0 );
+s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg, 1 );
+% s = wk( s0, f0, Kr, Vr, Fr, Fa, center_R0, 0 );
 figure;
 img = abs(s);
 min_v = min(img(:));
@@ -56,10 +67,19 @@ b = a(:);
 figure;
 plot(b);
 
-
-
-
-
-
+%图像均衡化
+% figure;
+% imshow(histeq(abs(tmp)),[]);
+% colormap('gray');
+% 
+% %% 自适应中值滤波
+% x_filtered = medfilt2(tmp,[5,5]);
+% % x_filtered=selfAdaption_Medianfilter(tmp);
+% figure;
+% imagesc(x_filtered);
+% colormap(gray);
+% figure;
+% imshow(histeq(x_filtered),[]);
+% colormap('gray');
 
 

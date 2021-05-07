@@ -1,4 +1,4 @@
-function [ img_rd] = RDA( s0, lambda, Kr, Vr, Fr, PRF,near_range,theta_rc_deg )
+function [ img_rd] = RDA( s0, lambda, Kr, Vr, Fr, PRF,center_R0,theta_rc_deg,flag )
 %   Range Doppler Algorithm
 % input:
 %   s0,基带回波数据，每一列为等距离门。
@@ -9,6 +9,7 @@ function [ img_rd] = RDA( s0, lambda, Kr, Vr, Fr, PRF,near_range,theta_rc_deg )
 %   PRF,脉冲重复频率。
 %   center_R0,第一个采样点距离。
 %   theta_rc_deg,斜视角，单位为角度（°）。
+%   flag,是否画出中间步骤图。
 % output:
 %   img_rd: RDA聚焦后的复图像。
 
@@ -20,7 +21,6 @@ theta_rc = theta_rc_deg*pi/180;
 f0=c/lambda;
 delta_r = c/2/Fr;              % 距离向采样间距。
 f_etac = 2*Vr*sin(theta_rc)/lambda;% 多普勒中心频率
-center_R0=near_range+Nrg/2/Fr*c/2;
 
 %% 距离压缩(采用方式3匹配滤波）
 f_tau = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg); % 距离向频率轴
@@ -31,6 +31,14 @@ s0_tmp = fft(s0.').';          %距离频域方位时域 fft默认按列
 Src = s0_tmp.*Hrc;             %匹配滤波
 s_rc = ifft(Src.').';
 
+if flag == 1 
+    figure;
+    imagesc(abs(s_rc));
+    title('距离压缩后图像');
+    xlabel('距离向时间（采样点）');
+    ylabel('方位向时间（采样点）');
+%     colormap('gray');
+end 
 %% 方位向傅里叶变换
 Srd = fft(s_rc);
 
@@ -53,6 +61,15 @@ f_tau_mtx = repmat(f_tau,Naz,1);
 Hsrc = exp(-1j*pi*f_tau_mtx.^2./repmat(Ksrc,1,Nrg));
 Ssrc = S2df.*Hsrc;              %二维频域中实现二次压缩
 s_src = ifft(Ssrc.').';
+
+if flag == 1 
+    figure;
+    imagesc(abs(s_src));
+    title('二次距离压缩后图像');
+    xlabel('距离向时间（采样点）');
+    ylabel('方位向频域（采样点）');
+%     colormap('gray');
+end 
 
 %% 距离徙动校正（RCMC)
 D_grid = repmat(D,1,Nrg);
@@ -84,12 +101,24 @@ for i = 1:Naz
         end
         
     end
-    if mod(i,500)== 0
+    if mod(i,200)== 0
     waitbar(i/Naz,hwait,['插值处理中: ', num2str(i/Naz*100), '%']);
     end
 end
 close(hwait);
+ 
+if flag == 1
+    figure;
+    imagesc(abs(Srcmc));
+    title('距离徙动校正后图像');
+    xlabel('距离向时间（采样点）');
+    ylabel('方位向频域（采样点）');
+%     colormap('gray');
+end
+
+
 %% 方位向压缩
+% Srcmc=s_src;%不做距离徙动校正
 Haz = exp(1j*4*pi.*R0_grid.*D_grid *f0 /c);% 注意此处方位压缩多补偿了个4*pi*R0*f0/c的相位
 Srd_ac = Srcmc.*Haz;
 

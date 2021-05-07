@@ -1,4 +1,4 @@
-function [GMG,LS,Dynamic_range,Mean,Var] = ImageEvaluation(img)
+function [GMG,LS,Dynamic_range,EVA,Mean,Var] = ImageEvaluation(img)
 %图像质量评估函数
 %input:二维图像
 %output：评价值：GMG(灰度平均梯度值)，LS(拉普拉斯算子和)，Mean(均值），Var(方差）
@@ -14,7 +14,10 @@ function [GMG,LS,Dynamic_range,Mean,Var] = ImageEvaluation(img)
 动态范围（英语：dynamic range）是可变化信号（例如声音或光）最大值和最小值的比值。
 也可以用以10为底的对数表示。
 %}
-
+%{
+清晰度(EVA)是图像细节边缘变化的敏锐程度，在图像细节的边缘处，光学密度或亮度随位置的变化越敏锐
+(变化快)、越剧烈(反差大)，则细节的边缘就越清晰，可辨程度越高。
+%}
 %{
 等效视数(ENL)：等效视数度量了图像区分具有不同后向散射特性区域的能力，是衡量一幅SAR图像斑点噪声相对强度的一种指标，
 等效视数越大，表明图像上斑点越弱。其计算方法为对SAR图像均匀区域的灰度均值与方差求商再平方。
@@ -40,18 +43,33 @@ laplace=[-1 -1 -1;
          -1 -1 -1];
 res=conv2(img,laplace,'valid');
 LS=sum(sum(abs(res)))/(M-2)/(N-2);
-figure;
-imagesc(abs(res));
-colormap(gray);
+% figure;
+% imagesc(abs(res));
+% colormap(gray);
+% title('拉普拉斯算子边缘检测');
 
 %% 动态范围（英语：dynamic range）
 Imin=min(min(img));
 Imax=max(max(img));
 if Imin==0
-    error('图像存在为0的点');
+    disp('图像存在为0的点');
+    Dynamic_range=0;
 else
     Dynamic_range=10*log10(Imax/Imin);
 end
+
+%% 
+tmp1 = zeros(M-2,N-2);
+tmp2 = zeros(M-2,N-2);
+for x = 2:M-1
+    for y = 2:N-1
+        tmp1(x-1,y-1)= abs(img(x-1,y)-img(x,y))+abs(img(x+1,y)-img(x,y))+abs(img(x,y+1)-img(x,y))+abs(img(x,y-1)-img(x,y));
+        tmp2(x-1,y-1)= abs(img(x-1,y-1)-img(x,y))+abs(img(x+1,y+1)-img(x,y))+abs(img(x-1,y+1)-img(x,y))+abs(img(x+1,y-1)-img(x,y));
+    end
+end
+e=tmp1+tmp2;%e(x-1,y-1)存有f(x,y)的8领域加权差值和
+EVA=sum(sum(e))/(M-2)/(N-2);
+
 
 %% 等效视数(ENL)
 % ENL = (Mean/Var).^2;
