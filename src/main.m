@@ -82,4 +82,17 @@ plot(b);
 % imshow(histeq(x_filtered),[]);
 % colormap('gray');
 
+%% CSA
+img_cs = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,1);
+img_cs_abs = abs(img_cs);
+% figure;imagesc(img_cs_abs); colormap('gray');
+%% 2%»Ò¶ÈÔöÇ¿
+values = sort(img_cs_abs(:),'ascend');
+theshold1 = values(round(0.02*Nrg*Naz));
+theshold2 = values(round(0.98*Nrg*Naz));
+img_cs_abs(img_cs_abs < theshold1) = theshold1;
+img_cs_abs(img_cs_abs > theshold2) = theshold2;
+figure;imagesc(img_cs_abs); colormap('gray');
+img_cs_uint8 = uint8((img_cs_abs-min(img_cs_abs(:)))/(max(img_cs_abs(:))-min(img_cs_abs(:)))*255);
+imwrite(img_cs_uint8,'D:\img_cs.jpg');
 
