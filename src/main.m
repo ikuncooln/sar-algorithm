@@ -56,10 +56,10 @@ theta_rc = theta_rc_deg * pi / 180;
 Naz = height;
 Nrg = width;
 PRF = Fa;
-s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg, 0 );
-clear s0;
+s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg);
 % s = wk( s0, f0, Kr, Vr, Fr, Fa, center_R0, 0 );
 % s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,1);
+clear s0;
 img = abs(s);
 % figure;imagesc(img); colormap('gray');
 %% 2%ª“∂»‘ˆ«ø

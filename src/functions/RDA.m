@@ -1,4 +1,4 @@
-function [ img_rd] = RDA( s0, lambda, Kr, Vr, Fr, PRF,center_R0,theta_rc_deg,flag )
+function [ img_rd] = RDA( s0, lambda, Kr, Vr, Fr, PRF,center_R0,theta_rc_deg)
 %   Range Doppler Algorithm
 % input:
 %   s0,基带回波数据，每一列为等距离门。
@@ -31,14 +31,14 @@ s0_tmp = fft(s0.').';          %距离频域方位时域 fft默认按列
 Src = s0_tmp.*Hrc;             %匹配滤波
 s_rc = ifft(Src.').';
 
-if flag == 1 
-    figure;
-    imagesc(abs(s_rc));
-    title('距离压缩后图像');
-    xlabel('距离向时间（采样点）');
-    ylabel('方位向时间（采样点）');
-%     colormap('gray');
-end 
+% if flag == 1 
+%     figure;
+%     imagesc(abs(s_rc));
+%     title('距离压缩后图像');
+%     xlabel('距离向时间（采样点）');
+%     ylabel('方位向时间（采样点）');
+% %     colormap('gray');
+% end 
 
 clear s0  Hrc s0_tmp Src
 %% 方位向傅里叶变换
@@ -67,14 +67,14 @@ Ssrc = S2df.*Hsrc;              %二维频域中实现二次压缩
 clear  Hsrc   S2df  f_eta
 s_src = ifft(Ssrc.').';
 clear Ssrc
-if flag == 1 
-    figure;
-    imagesc(abs(s_src));
-    title('二次距离压缩后图像');
-    xlabel('距离向时间（采样点）');
-    ylabel('方位向频域（采样点）');
-%     colormap('gray');
-end 
+% if flag == 1 
+%     figure;
+%     imagesc(abs(s_src));
+%     title('二次距离压缩后图像');
+%     xlabel('距离向时间（采样点）');
+%     ylabel('方位向频域（采样点）');
+% %     colormap('gray');
+% end 
 
 
 %% 距离徙动校正（RCMC)
@@ -113,14 +113,14 @@ for i = 1:Naz
 end
 close(hwait);
  
-if flag == 1
-    figure;
-    imagesc(abs(Srcmc));
-    title('距离徙动校正后图像');
-    xlabel('距离向时间（采样点）');
-    ylabel('方位向频域（采样点）');
-%     colormap('gray');
-end
+% if flag == 1
+%     figure;
+%     imagesc(abs(Srcmc));
+%     title('距离徙动校正后图像');
+%     xlabel('距离向时间（采样点）');
+%     ylabel('方位向频域（采样点）');
+% %     colormap('gray');
+% end
 
 clear RCM kwin
 %% 方位向压缩
