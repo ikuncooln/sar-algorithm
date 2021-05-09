@@ -8,19 +8,19 @@ function [ s0 ] = read_data( file_name, range_size, x0, y0, height, width)
 %   x0 读取数据起始位置的行号坐标（从1开始）
 %   y0 读取数据起始位置的列列坐标（从1开始）
 %   height 读取数据的高度（复采样点）
-%   width 读取数据的宽度（负采样点）
+%   width 读取数据的宽度（复采样点）
 %
 %   s0 复信号数据矩阵
 
 %   例：
-%       s0 = read_data('data_after_moco.dat', 16384, 0, 0, 4096, 4096)
+%       s0 = read_data('data_after_moco.dat', 16384, 1, 1, 4096, 4096)
 
-W = range_size; %  width (pixel) of raw_data(IQ)r
+W = range_size; %  width (pixel) of raw_data(IQ)
 s0 = zeros(height, width);  % store the signal
 
 fid = fopen(file_name, 'r');
-if fid==0
-    disp('文件不存在')
+if fid==-1
+    disp(['文件', file_name, '不存在'])
     return;
 end
 offset = (2*(x0-1) + W*2*(y0-1))*4;

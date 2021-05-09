@@ -1,14 +1,14 @@
-function [ s2, s1 ] = omega_k_func( s0, f0, Kr, Vr, Fr, Fa, Rref, f_etac, flag )
-%OMEGA_K_FUNC Foucus your SAR data by Omega-K Algorithm
+function [ img_wk ] = wKA( s0, lambda, Kr, Vr, Fr, PRF, Rref, f_etac )
+%wKA Foucus your SAR data by Omega-K Algorithm
 %   
 %   s2 the focused image
 %   s1 the focused image without stolt map
 %   ...
-%   flag 是否绘制数据处理中间步骤对应的图，为0表示不绘制，为1表示绘制
-%       在处理较大的数据时，设置为0不绘制相应的图能提高程序速度
 c = 299792458;
+f0 = c / lambda;
+Fa = PRF;
 
-%% 3. 参考函数相乘（Omega-K方法）
+%% 1. 参考函数相乘
 % 构造参考函数
 [Naz, Nrg] = size(s0);
 f_tau = ifftshift(-Nrg/2:Nrg/2-1) * Fr / Nrg;
@@ -17,32 +17,39 @@ f_eta = (ifftshift(-Naz/2:Naz/2-1) * Fa / Naz).';
 f_eta = f_eta + round((f_etac - f_eta) / Fa) * Fa;
 [f_tau_grid, f_eta_grid] = meshgrid(f_tau, f_eta);
 
+clear f_tau; clear f_eta;
+
 theta_ref = 4*pi*Rref / c * sqrt((f0+f_tau_grid).^2 ...
 - c^2*f_eta_grid.^2/(4*Vr^2)) + pi*f_tau_grid.^2/Kr;
 Href = exp(1j * theta_ref);
-
+clear theta_ref;
 S2df = fft2(s0);
+clear s0;
 % 因为参考函数相乘中有线性相位2*pi*2*Rref/c/D，所以需要将其补偿掉，不然时域就发生了平移
 D_fetac_Vref = sqrt(1-c^2*f_etac^2/(4*Vr^2*f0^2));
 % 一致参考函数相乘导致的距离时间和方位时间偏移（主要看theta_ref展开时中关于f_tau和f_eta的线性项）
 tau_shift = (2*Rref/c/D_fetac_Vref);
 eta_shift = Rref * c * f_etac / (2 * Vr^2 * f0 * D_fetac_Vref);
+clear D_fetac_Vref;
 
 Hshift1 = exp(-1j*2*pi*f_tau_grid*tau_shift) ...
     .*exp(1j*2*pi*f_eta_grid*eta_shift);
+clear tau_shift; clear eta_shift;
 S_RFM = S2df .* Href .* Hshift1;
-
-s1 = ifft2(S_RFM);
+clear Href; clear Hshift1; clear S2df; 
+% s1 = ifft2(S_RFM);
 % figure;
 % imagesc(abs(s1)); title('无Stolt插值的压缩目标');
 
-%% 4. Stolt映射
+%% 2. Stolt映射
 % 计算映射频率偏移量
 f_tau1_0 = sqrt((f0 + 0)^2 - c^2*f_eta_grid.^2/(4*Vr^2)) - f0; % 映射后距离向中心频率
 % 将频率[-Fr/2, Fr/2]映射回其实际（卷绕前）对应的频率 
 f_tau1_grid = f_tau_grid + round((f_tau1_0 - f_tau_grid)/Fr)*Fr;
 OFFSET = sqrt((f_tau1_grid + f0).^2 + c^2*f_eta_grid.^2/(4*Vr^2)) - f0 - f_tau_grid;
 OFFSET = OFFSET / (Fr/Nrg);
+
+clear f_eta_grid; clear f_tau1_grid;
 
 % 下面类似于距离徙动校正进行插值
 % 计算插值核系数表
@@ -61,9 +68,11 @@ hx = hx ./ repmat(sum(hx, 2), 1, 8);
 % s(t)多出了线性相位，因此我们需要将时间轴循环移位，或直接在频域进行线性相位补偿
 % 具体参考使用Matlab做FFT变换值得注意的一些问题.md
 Hshift2 = exp(-1j*2*pi*(f_tau_grid*(-Nrg/2/Fr)));
+clear f_tau_grid;
 S_RFM = S_RFM .* Hshift2;
 % 插值映射
 Sstolt = zeros(Naz, Nrg);  % 存放Stolt映射后的信号
+hwait=waitbar(0,'请等待>>>>>>>>');
 for i = 1:Naz
     for j = 1:Nrg
         offset_int = ceil(OFFSET(i,j));
@@ -75,10 +84,15 @@ for i = 1:Naz
         end
         
     end
-    disp(['Stolt映射中: ', num2str(i/Naz*100), '%']);
+    if mod(i,200)== 0
+    waitbar(i/Naz,hwait,['Stolt映射中: ', num2str(i/Naz*100), '%']);
+    end
 end
+close(hwait);
+clear OFFSET;
 
 Sstolt = Sstolt ./ Hshift2;  % 目标点已经被定位在R0,去除前面的移位效果
-s2 = ifft2(Sstolt);
+clear Hshift2;
+img_wk = ifft2(Sstolt);
 end
 
