@@ -1,4 +1,4 @@
-function img_wk = wKA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,flag)
+function img_wk = wKA1(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,flag)
 %   wK算法成像
 %   s0是输入信号数据（二维复数组）
 %   theta_bw是天线方位向波束宽度(rad)

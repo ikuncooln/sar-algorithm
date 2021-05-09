@@ -25,7 +25,7 @@ alpha_os_a = Fa / BW_dop;
 %% 2. 生成原始雷达数据
 NUM_TARGETS = 3;    % 仿真的目标数为3
 rs = [0, 0, 30];    % 各目标距离向距离
-as = [-20, 0, -10]; % 目标相对方位向距离
+as = [-20, 0, -7.94]; % 目标相对方位向距离
 parameters = struct(...
     'center_Rc', center_Rc,...          % 景中心斜距
     'theta_rc_deg', theta_rc_deg,...    % 斜视角
@@ -56,7 +56,12 @@ suptitle([num2str(theta_rc_deg), '度斜视角情况下的', num2str(NUM_TARGETS
 %% 距离压缩(采用方式3匹配滤波）
 f_tau = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg); % 距离向频率轴
 Hrc = exp(1j*pi*f_tau.^2/Kr);  % Matched filter in Frequency domain
+a_os_r = Fr/abs(Kr*Tr);
+N_BW_r = round(Nrg/a_os_r);            % Kr*Tr包含的点数
+window_r = ifftshift(kaiser(N_BW_r,2.5)');    % Kaiser窗
+window_r = repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);
 Hrc = repmat(Hrc,Naz,1);
+Hrc = Hrc.*window_r;
 s0_tmp = fft(s0.').';          %距离频域方位时域 fft默认按列
 %注意这里不用fftshift
 Src = s0_tmp.*Hrc;             %匹配滤波
@@ -148,11 +153,16 @@ suptitle('21.9度斜视角距离压缩且方位压缩后的信号（时域）');
 
 %% 4. 点目标分析
 % 计算每个点出现位置的索引值
-ns = round(rs/(delta_r*cos(theta_rc))) + (Nrg/2 + 1);
+delta_r=delta_r * cos(theta_rc);
+ns = round(rs/(delta_r)) + (Nrg/2 + 1);
 ms = round(as/delta_a) + (Naz/2 + 1);
 len = 16;
 p = 1;
 target = img_rd(ms(p)-len/2:ms(p)+len/2-1, ns(p)-len/2:ns(p)+len/2-1);
 [image_upsample,signal_r,quality_r,signal_a,quality_a] = f_point_analyse(target,delta_r,delta_a);
-
-
+BW_r= abs(Kr*Tr);
+La = 0.886 * 2 * Vs * cos(theta_rc) / BW_dop;   % 天线孔径长度
+IRW_r_theory = c/2/BW_r*0.886*1.18;
+IRW_a_theory = La/2*Vg/Vs*1.185;
+disp(['距离向理论分辨率:',num2str(IRW_r_theory),'m']);
+disp(['方位向理论分辨率:',num2str(IRW_a_theory),'m']);

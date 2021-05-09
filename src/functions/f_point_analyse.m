@@ -124,6 +124,9 @@ signal_r = image_upsample(sub2ind([N_fft_a,N_fft_r],y_r,1:N_fft_r));
 quality_r = f_IRW_PSLR_ISLR(signal_r);
 delta_r_new = sqrt(delta_r^2+k_r^2*delta_a^2);
 quality_r(1) = quality_r(1)*size_r/N_fft_r*delta_r_new;
+disp(['距离向分辨率:',num2str(quality_r(1)),'m']);
+disp(['距离向峰值旁瓣比:',num2str(quality_r(2)),'dB']);
+disp(['距离向积分旁瓣比:',num2str(quality_r(3)),'dB']);
 % 方位向
 k_a = (loc_rg(2)-max_rg)/(loc_az(2)-max_az);
 x_a = max_rg + round(k_a*((1:N_fft_a)-max_az));
@@ -131,6 +134,9 @@ signal_a = image_upsample(sub2ind([N_fft_a,N_fft_r],1:N_fft_a,x_a));
 quality_a = f_IRW_PSLR_ISLR(signal_a);
 delta_a_new = sqrt(delta_a^2+k_a^2*delta_r^2);
 quality_a(1) = quality_a(1)*size_a/N_fft_a*delta_a_new;
+disp(['方位向分辨率:',num2str(quality_a(1)),'m']);
+disp(['方位向峰值旁瓣比:',num2str(quality_a(2)),'dB']);
+disp(['方位向积分旁瓣比:',num2str(quality_a(3)),'dB']);
 % 画线示意
 plot(1:N_fft_r,y_r,'r',x_a,1:N_fft_a,'r');
 hold off;

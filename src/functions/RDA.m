@@ -25,7 +25,13 @@ f_etac = 2*Vr*sin(theta_rc)/lambda;% 多普勒中心频率
 %% 距离压缩(采用方式3匹配滤波）
 f_tau = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg); % 距离向频率轴
 Hrc = exp(1j*pi*f_tau.^2/Kr);  % Matched filter in Frequency domain
+a_os_r = Fr/abs(Kr*Tr);
+N_BW_r = round(Nrg/a_os_r);            % Kr*Tr包含的点数
+window_r = ifftshift(kaiser(N_BW_r,2.5)');    % Kaiser窗
+window_r = repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);
 Hrc = repmat(Hrc,Naz,1);
+Hrc = Hrc.*window_r;
+clear window_r
 s0_tmp = fft(s0.').';          %距离频域方位时域 fft默认按列
 %注意这里不用fftshift
 Src = s0_tmp.*Hrc;             %匹配滤波
