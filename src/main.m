@@ -18,8 +18,8 @@ file_size = range_size * azimuth_size * 8;
 
 %% 1. read data
 x0 = 1; y0 = 1;
-height = 20480; width = 16384;
-% height = 4096; width = 4096;
+% height = 20480; width = 16384;
+height = 4096; width = 4096;
 % data_file = 'E:/学校/研一下/SAR信号处理与运动补偿/h2/data_after_moco.dat';
 data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\data_after_moco.dat';
 
@@ -64,8 +64,8 @@ f_etac = 2 * Vr * sin(theta_rc) / lambda;
 %% 3. 成像处理
 disp('开始成像');
 % s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg);
-% s = wKA( s0, lambda, Kr, Vr, Fr, Fa, center_R0, f_etac );
-s = wKA1(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
+s = wKA( s0, lambda, Kr, Vr, Fr, Fa, center_R0, f_etac ,Tr);
+% s = wKA1(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
 % s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,1);
 clear s0;
 img = abs(s);
@@ -81,7 +81,7 @@ img(img > theshold2) = theshold2;
 figure;imagesc(img); colormap('gray');
 img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
 clear img;
-imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_wk_lhx_full.bmp');
+imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_wk_4096_win.bmp');
 % imwrite(img_uint8,'E:/zhaofei/repo/sar-algorithm/output/scene_rd.tiff');
 
 

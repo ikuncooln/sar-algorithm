@@ -1,4 +1,4 @@
-function [ img_wk ] = wKA( s0, lambda, Kr, Vr, Fr, PRF, Rref, f_etac )
+function [ img_wk ] = wKA( s0, lambda, Kr, Vr, Fr, PRF, Rref, f_etac,Tr )
 %wKA Foucus your SAR data by Omega-K Algorithm
 %   
 %   s2 the focused image
