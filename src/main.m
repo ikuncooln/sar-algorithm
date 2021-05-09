@@ -63,8 +63,8 @@ f_etac = 2 * Vr * sin(theta_rc) / lambda;
 
 %% 3. 成像处理
 disp('开始成像');
-s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg);
-% s = wKA( s0, lambda, Kr, Vr, Fr, Fa, center_R0, f_etac );
+% s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg);
+s = wKA( s0, lambda, Kr, Vr, Fr, Fa, center_R0, f_etac );
 % s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,1);
 clear s0;
 img = abs(s);
@@ -80,8 +80,8 @@ img(img > theshold2) = theshold2;
 figure;imagesc(img); colormap('gray');
 img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
 clear img;
-% imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_full.bmp');
-imwrite(img_uint8,'E:/zhaofei/repo/sar-algorithm/output/scene_rd.tiff');
+imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_wk_full.bmp');
+% imwrite(img_uint8,'E:/zhaofei/repo/sar-algorithm/output/scene_rd.tiff');
 
 
 
