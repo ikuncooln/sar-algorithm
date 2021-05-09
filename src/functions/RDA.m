@@ -39,11 +39,14 @@ if flag == 1
     ylabel('方位向时间（采样点）');
 %     colormap('gray');
 end 
+
+clear s0  Hrc s0_tmp Src
 %% 方位向傅里叶变换
 Srd = fft(s_rc);
-
+clear s_rc
 %% 二次距离压缩(二维频域进行）
 S2df  = fft(Srd.').';          %前面为了观察频域做了傅里叶逆变换，实际可以省略。
+clear Srd
 f_eta = (ifftshift((-Naz/2:Naz/2-1)*Fa/Naz)).';
 f_eta = f_eta + round((f_etac - f_eta)/Fa)*Fa;
 tau0 = 2*center_R0/cos(theta_rc)/c;
@@ -59,9 +62,11 @@ Ksrc = 2*Vr^2*f0^3.*D.^3/c/center_R0./f_eta.^2;
 f_tau_mtx = repmat(f_tau,Naz,1);
 %计算二次压缩滤波器
 Hsrc = exp(-1j*pi*f_tau_mtx.^2./repmat(Ksrc,1,Nrg));
+clear f_tau_mtx f_tau
 Ssrc = S2df.*Hsrc;              %二维频域中实现二次压缩
+clear  Hsrc   S2df  f_eta
 s_src = ifft(Ssrc.').';
-
+clear Ssrc
 if flag == 1 
     figure;
     imagesc(abs(s_src));
@@ -70,6 +75,7 @@ if flag == 1
     ylabel('方位向频域（采样点）');
 %     colormap('gray');
 end 
+
 
 %% 距离徙动校正（RCMC)
 D_grid = repmat(D,1,Nrg);
@@ -116,15 +122,16 @@ if flag == 1
 %     colormap('gray');
 end
 
-
+clear RCM kwin
 %% 方位向压缩
 % Srcmc=s_src;%不做距离徙动校正
 Haz = exp(1j*4*pi.*R0_grid.*D_grid *f0 /c);% 注意此处方位压缩多补偿了个4*pi*R0*f0/c的相位
 Srd_ac = Srcmc.*Haz;
-
+clear Srcmc R0_grid D_grid  Haz
 %%
 eta0 = -center_R0 / cos(theta_rc)*sin(theta_rc)/Vr; %景中心点对应的相对波束中心穿越时刻；
 Srd_ac = Srd_ac.*exp(-1j*2*pi*f_eta_grid*eta0);
+clear f_eta_grid 
 img_rd = ifft(Srd_ac);
+clear Srd_ac
 end
-

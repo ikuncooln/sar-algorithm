@@ -18,9 +18,9 @@ file_size = range_size * azimuth_size * 8;
 
 %% 1. read data
 x0 = 1; y0 = 1;
-height = 4096; width = 4096;
+height = 20480; width = 16384;
 % data_file = 'E:/学校/研一下/SAR信号处理与运动补偿/h2/data_after_moco.dat';
-data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业/data_after_moco.dat';
+data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\data_after_moco.dat';
 
 s0 = read_data( data_file, range_size, x0, y0, height, width);
 
@@ -50,22 +50,45 @@ Fa = prf;
 theta_rc_deg = 0;
 delta_r = c/Fr/2;
 center_R0 = near_range + (x0-1+width/2)*delta_r;
-s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg, 1 );
+theta_bw = azimuth_angle;
+Tr = pulse_width;
+theta_rc = theta_rc_deg * pi / 180;
+Naz = height;
+Nrg = width;
+PRF = Fa;
+s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg, 0 );
+clear s0;
 % s = wk( s0, f0, Kr, Vr, Fr, Fa, center_R0, 0 );
-figure;
+% s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,1);
 img = abs(s);
-min_v = min(img(:));
-tmp = (img - min_v)/(max(img(:))-min_v)*255;
-imwrite(uint16(tmp), 'tmp.tif');
+% figure;imagesc(img); colormap('gray');
+%% 2%灰度增强
+values = sort(img(:),'ascend');
+theshold1 = values(round(0.02*Nrg*Naz));
+theshold2 = values(round(0.98*Nrg*Naz));
+img(img < theshold1) = theshold1;
+img(img > theshold2) = theshold2;
+figure;imagesc(img); colormap('gray');
+img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
+imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_full.bmp');
 
-img(img>255) = 255;
-imagesc(img);
-colormap('gray');
 
-a = abs(s);
-b = a(:);
-figure;
-plot(b);
+
+
+% figure;
+% img = abs(s);
+% min_v = min(img(:));
+% tmp = (img - min_v)/(max(img(:))-min_v)*255;
+% imwrite(uint16(tmp), 'tmp.tif');
+% img(img>255) = 255;
+% imagesc(img);
+% colormap('gray');
+% a = abs(s);
+% b = a(:);
+% figure;
+% plot(b);
+
+
 
 %图像均衡化
 % figure;
@@ -82,17 +105,4 @@ plot(b);
 % imshow(histeq(x_filtered),[]);
 % colormap('gray');
 
-%% CSA
-img_cs = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,1);
-img_cs_abs = abs(img_cs);
-% figure;imagesc(img_cs_abs); colormap('gray');
-%% 2%灰度增强
-values = sort(img_cs_abs(:),'ascend');
-theshold1 = values(round(0.02*Nrg*Naz));
-theshold2 = values(round(0.98*Nrg*Naz));
-img_cs_abs(img_cs_abs < theshold1) = theshold1;
-img_cs_abs(img_cs_abs > theshold2) = theshold2;
-figure;imagesc(img_cs_abs); colormap('gray');
-img_cs_uint8 = uint8((img_cs_abs-min(img_cs_abs(:)))/(max(img_cs_abs(:))-min(img_cs_abs(:)))*255);
-imwrite(img_cs_uint8,'D:\img_cs.jpg');
 
