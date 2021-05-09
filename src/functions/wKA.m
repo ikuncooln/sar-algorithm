@@ -37,6 +37,13 @@ Hshift1 = exp(-1j*2*pi*f_tau_grid*tau_shift) ...
 clear tau_shift; clear eta_shift;
 S_RFM = S2df .* Href .* Hshift1;
 clear Href; clear Hshift1; clear S2df; 
+
+a_os_r = Fr/abs(Kr*Tr);
+N_BW_r = round(Nrg/a_os_r);            % Kr*Tr包含的点数
+window_r = ifftshift(kaiser(N_BW_r,2.5)');    % Kaiser窗
+window_r = repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);
+S_RFM = S_RFM.*window_r;
+clear window_r
 % s1 = ifft2(S_RFM);
 % figure;
 % imagesc(abs(s1)); title('无Stolt插值的压缩目标');
