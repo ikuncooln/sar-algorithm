@@ -109,6 +109,7 @@ plot(r_w, a_h_bottom, 'r-');
 line([r_w(1); r_w(1)], [a_h_bottom(1); a_h_top(1)], 'color', 'r');
 line([r_w(end); r_w(end)], [a_h_bottom(end); a_h_top(end)], 'color', 'r');
 xlabel('相对景中心斜距向r（m）');ylabel('方位向（m）');
+set(gca, 'YDir', 'reverse');
 grid on;
 
 if NUM_TARGETS == 0
