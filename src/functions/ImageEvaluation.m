@@ -46,10 +46,13 @@ laplace=[-1 -1 -1;
          -1 -1 -1];
 res=conv2(img,laplace,'valid');
 LS=sum(sum(abs(res)))/(M-2)/(N-2);
-% figure;
-% imagesc(abs(res));
-% colormap(gray);
-% title('拉普拉斯算子边缘检测');
+values = sort(res(:),'ascend');
+theshold1 = values(round(0.02*M*N));
+theshold2 = values(round(0.98*M*N));
+res(res < theshold1) = theshold1;
+res(res > theshold2) = theshold2;
+figure;imagesc(res); colormap('gray');title('拉普拉斯算子边缘检测1');
+
 clear res
 disp('LS计算完成');
 %% 动态范围（英语：dynamic range）
