@@ -1,14 +1,14 @@
 function quality = f_IRW_PSLR_ISLR(signal)
-%    è®¡ç®—å†²æ¿€å“åº”å®½åº¦ã€å³°å€¼æ—ç“£æ¯”å’Œç§¯åˆ†æ—ç“£æ¯”
-%    signalæ˜¯å¾…åˆ†æžçš„å†²æ¿€å“åº”
-%    qualityçš„3ä¸ªå€¼åˆ†åˆ«ä»£è¡¨IRWï¼ˆé‡‡æ ·ç‚¹ï¼‰ã€PSLRã€ISLR
+%    ¼ÆËã³å¼¤ÏìÓ¦¿í¶È¡¢·åÖµÅÔ°ê±ÈºÍ»ý·ÖÅÔ°ê±È
+%    signalÊÇ´ý·ÖÎöµÄ³å¼¤ÏìÓ¦
+%    qualityµÄ3¸öÖµ·Ö±ð´ú±íIRW£¨²ÉÑùµã£©¡¢PSLR¡¢ISLR
 quality = zeros(1,3);
 signal_dB = 20*log10(abs(signal)/max(abs(signal(:))));
 % IRW
 quality(1) = sum(signal_dB >= -3);
 % PSLR
 signal_abs = abs(signal);
-[pks,locs]= findpeaks(signal_abs,'MinPeakWidth',quality(1)/4);
+[pks,locs]= findpeaks(signal_abs,'MinPeakWidth',quality(1)/10);
 main = locs(find(pks == max(pks),1));
 second1 = locs(find(pks == max(pks),1)-1);
 second2 = locs(find(pks == max(pks),1)+1);

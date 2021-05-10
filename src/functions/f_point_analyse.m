@@ -119,8 +119,11 @@ hold on;plot(max_rg,max_az,'r.');
 [loc_rg,loc_az] = ginput(2);
 % 距离向
 k_r = (loc_az(1)-max_az)/(loc_rg(1)-max_rg);
-y_r = max_az + round(k_r*((1:N_fft_r)-max_rg));
-signal_r = image_upsample(sub2ind([N_fft_a,N_fft_r],y_r,1:N_fft_r));
+x_r = 1:N_fft_r;
+y_r = max_az + round(k_r*(x_r-max_rg));
+x_r = x_r(y_r>=1&y_r<=N_fft_a);
+y_r = y_r(y_r>=1&y_r<=N_fft_a);
+signal_r = image_upsample(sub2ind([N_fft_a,N_fft_r],y_r,x_r));
 quality_r = f_IRW_PSLR_ISLR(signal_r);
 delta_r_new = sqrt(delta_r^2+k_r^2*delta_a^2);
 quality_r(1) = quality_r(1)*size_r/N_fft_r*delta_r_new;
@@ -129,8 +132,11 @@ disp(['距离向峰值旁瓣比:',num2str(quality_r(2)),'dB']);
 disp(['距离向积分旁瓣比:',num2str(quality_r(3)),'dB']);
 % 方位向
 k_a = (loc_rg(2)-max_rg)/(loc_az(2)-max_az);
-x_a = max_rg + round(k_a*((1:N_fft_a)-max_az));
-signal_a = image_upsample(sub2ind([N_fft_a,N_fft_r],1:N_fft_a,x_a));
+y_a = 1:N_fft_a;
+x_a = max_rg + round(k_a*(y_a-max_az));
+y_a = y_a(x_a>=1&x_a<=N_fft_r);
+x_a = x_a(x_a>=1&x_a<=N_fft_r);
+signal_a = image_upsample(sub2ind([N_fft_a,N_fft_r],y_a,x_a));
 quality_a = f_IRW_PSLR_ISLR(signal_a);
 delta_a_new = sqrt(delta_a^2+k_a^2*delta_r^2);
 quality_a(1) = quality_a(1)*size_a/N_fft_a*delta_a_new;
@@ -138,17 +144,21 @@ disp(['方位向分辨率:',num2str(quality_a(1)),'m']);
 disp(['方位向峰值旁瓣比:',num2str(quality_a(2)),'dB']);
 disp(['方位向积分旁瓣比:',num2str(quality_a(3)),'dB']);
 % 画线示意
-plot(1:N_fft_r,y_r,'r',x_a,1:N_fft_a,'r');
+plot(x_r,y_r,'r',x_a,y_a,'r');
 hold off;
 %% 画图
 xticks = 0:size_r/N_fft_r:size_r-size_r/N_fft_r;
 yticks = 0:size_a/N_fft_a:size_a-size_a/N_fft_a;
+x_r_ticks = (x_r-1)*size_r/N_fft_r;
+y_r_ticks = (y_r-1)*size_a/N_fft_a;
+x_a_ticks = (x_a-1)*size_r/N_fft_r;
+y_a_ticks = (y_a-1)*size_a/N_fft_a;
 figure;
 subplot(321);imagesc(xticks,yticks,abs(image_upsample));title('(a)放大后的点目标');xlabel('距离向（采样点）');ylabel('方位向（采样点）');
-hold on;plot(((1:N_fft_r)-1)*size_r/N_fft_r,(y_r-1)*size_r/N_fft_r,'r',(x_a-1)*size_a/N_fft_a,((1:N_fft_a)-1)*size_a/N_fft_a,'r');hold off;
+hold on;plot(x_r_ticks,y_r_ticks,'r',x_a_ticks,y_a_ticks,'r');hold off;
 subplot(322);contour(xticks,yticks,abs(image_upsample),30);title('(b)放大后的点目标等值线图');set(gca,'YDir','reverse');xlabel('距离向（采样点）');ylabel('方位向（采样点）');
-subplot(323);plot(xticks*delta_r_new,20*log10(abs(signal_r)/max(abs(signal_r(:)))));xlim([0,size_r*delta_r_new]);ylim([-35,0]);title('(c)距离剖面图');xlabel('距离向(m)');ylabel('幅度(dB)');
-subplot(324);plot(yticks*delta_a_new,20*log10(abs(signal_a)/max(abs(signal_a(:)))));xlim([0,size_a*delta_a_new]);ylim([-35,0]);title('(d)方位剖面图');xlabel('方位向(m)');ylabel('幅度(dB)');
-subplot(325);plot(xticks*delta_r_new,angle(signal_r)*180/pi);xlim([0,size_r*delta_r_new]);ylim([-200,200]);title('(e)距离相位');xlabel('距离向(m)');ylabel('相位(°)');
-subplot(326);plot(yticks*delta_a_new,angle(signal_a)*180/pi);xlim([0,size_a*delta_a_new]);ylim([-200,200]);title('(f)方位相位');xlabel('方位向(m)');ylabel('相位(°)');
+subplot(323);plot(x_r_ticks*delta_r_new,20*log10(abs(signal_r)/max(abs(signal_r(:)))));axis tight;ylim([-35,0]);title('(c)距离剖面图');xlabel('距离向(m)');ylabel('幅度(dB)');
+subplot(324);plot(y_a_ticks*delta_a_new,20*log10(abs(signal_a)/max(abs(signal_a(:)))));axis tight;ylim([-35,0]);title('(d)方位剖面图');xlabel('方位向(m)');ylabel('幅度(dB)');
+subplot(325);plot(x_r_ticks*delta_r_new,angle(signal_r)*180/pi);axis tight;ylim([-200,200]);title('(e)距离相位');xlabel('距离向(m)');ylabel('相位(°)');
+subplot(326);plot(y_a_ticks*delta_a_new,angle(signal_a)*180/pi);axis tight;ylim([-200,200]);title('(f)方位相位');xlabel('方位向(m)');ylabel('相位(°)');
 end
