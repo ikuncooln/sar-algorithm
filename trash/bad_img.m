@@ -17,9 +17,10 @@ prf = 533.330793;
 file_size = range_size * azimuth_size * 8;
 
 %% 1. read data
-x0 = 1; y0 = 1;
+x0 = 5400; y0 = 5500;
 % height = 20480; width = 16384;
-height = 4096; width = 4096;
+% height = 4096; width = 4096;
+height = 2048; width = 2048;
 data_file = 'E:/学校/研一下/SAR信号处理与运动补偿/h2/data_after_moco.dat';
 % data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\data_after_moco.dat';
 
@@ -64,20 +65,19 @@ f_etac = 2 * Vr * sin(theta_rc) / lambda;
 %% 3. 成像处理
 disp('开始成像');
 % s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg);
-s = wKA( s0, lambda, Kr, Vr, Fr, Fa, center_R0, f_etac ,Tr);
+% s = wKA( s0, lambda, Kr, Vr, Fr, Fa, center_R0, f_etac ,Tr);
 % s = wKA1(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
-% s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,1);
+s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range+(x0-1)*delta_r,Vr,PRF,1);
 clear s0;
 img = abs(s);
-img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
-figure;imagesc(img_uint8); colormap('gray');
-disp('成像完成');
-figure;
-plot(img_uint8(:));
-xlabel('像素点');
-ylabel('灰度值');
-img = LEE();
-%% 2%灰度增强
+% img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
+% figure;imagesc(img_uint8); colormap('gray');
+% disp('成像完成');
+% figure;
+% plot(img_uint8(:));
+% xlabel('像素点');
+% ylabel('灰度值');
+% %% 2%灰度增强
 
 values = sort(img(:),'ascend');
 theshold1 = values(round(0.02*Nrg*Naz));
@@ -88,11 +88,11 @@ figure;imagesc(img); colormap('gray');
 img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
 % clear img;
 % imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_wk_4096_win.bmp');
-img_uint8_tmp = img_uint8;
-img_uint8 = img_uint8_tmp(1:512,1:512);
-img_filtered = Lee_filter(img_uint8);
-imwrite(img_filtered,'E:/zhaofei/repo/sar-algorithm/output/scene_wk_filtered.tiff');
-imwrite(img_uint8,'E:/zhaofei/repo/sar-algorithm/output/scene_wk_nofilter_4096_4096.bmp');
+% img_uint8_tmp = img_uint8;
+% img_uint8 = img_uint8_tmp(1:512,1:512);
+% img_filtered = Lee_filter(img_uint8);
+% imwrite(img_filtered,'E:/zhaofei/repo/sar-algorithm/output/scene_wk_filtered.tiff');
+imwrite(img_uint8,'E:/zhaofei/repo/sar-algorithm/output/scene1_cs_nofilter_2048_2048.bmp');
 
 
 

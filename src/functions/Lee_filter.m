@@ -20,19 +20,27 @@ else
 end
 
 img_Lee = zeros(height, width);
+slice = -(N_half-1):N_half;
+mbound = height-N_half;
+nbound = width-N_half;
 % filtering
 hwait=waitbar(0,'Lee filtering, please wait>>>>>>>>');
 for m = 1:height
     for n = 1:width
-        mm = -(N_half-1):N_half + m;
-        nn = -(N_half-1):N_half + n;
-        mm = mod(mm, height);
-        nn = mod(nn, width);
-        mm(mm==0) = height;
-        nn(nn==0) = width;
+        mm = slice + m;
+        nn = slice + n;
+        if m < N_half || m > mbound
+            mm = mod(mm, height);
+            mm(mm==0) = height;
+        end
+        if n < N_half || n > nbound
+            nn = mod(nn, width);
+            nn(nn==0) = width;
+        end
         locval = I(mm, nn);
-        u = sum(locval(:)) / N_size;            % mean
-        v = sum(sum(locval.*locval)) / N_size - u*u;   % variance
+        u = mean(locval(:));    % mean
+        sqrtv = std(locval(:)); 
+        v = sqrtv * sqrtv;
         if(v == 0)
             k = 1;
         else
