@@ -1,6 +1,13 @@
 *.dat
 *.tif
 *.tiff
+*.jpg
+*.png
+*.bmp
+*.BMP
+*.PNG
+*.JPEG
+*.jpeg
 # Windows default autosave extension
 *.asv
 
