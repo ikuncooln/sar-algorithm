@@ -17,9 +17,9 @@ prf = 533.330793;
 file_size = range_size * azimuth_size * 8;
 
 %% 1. read data
-x0 = 1; y0 = 1;
-height = 20480; width = 16384;
-% height = 4096; width = 4096;
+x0 = 5500; y0 =5400;
+% height = 20480; width = 16384;
+height = 2000; width = 2000;
 % data_file = 'E:/学校/研一下/SAR信号处理与运动补偿/h2/data_after_moco.dat';
 data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\data_after_moco.dat';
 
@@ -27,21 +27,21 @@ disp('读取数据中');
 s0 = read_data( data_file, range_size, x0, y0, height, width);
 disp('数据读取完成');
 
-figure;
-imagesc(real(s0));
-colormap('gray');
-title('原始信号实部');
-figure;
-subplot 211
-plot(real(s0(1,:)));
-xlabel('时间（采样点)');
-ylabel('幅度');
-subplot 212
-f=(-range_sample_rate/2:range_sample_rate/width:range_sample_rate/2-range_sample_rate/width);
-plot(f/1e6,fftshift(abs(fft(real(s0(1,:))))));
-xlabel('频率MHz');
-ylabel('幅度');
-axis tight
+% figure;
+% imagesc(real(s0));
+% colormap('gray');
+% title('原始信号实部');
+% figure;
+% subplot 211
+% plot(real(s0(1,:)));
+% xlabel('时间（采样点)');
+% ylabel('幅度');
+% subplot 212
+% f=(-range_sample_rate/2:range_sample_rate/width:range_sample_rate/2-range_sample_rate/width);
+% plot(f/1e6,fftshift(abs(fft(real(s0(1,:))))));
+% xlabel('频率MHz');
+% ylabel('幅度');
+% axis tight
 %% 2. convert the prameters to standar vaiables
 c = 299792458;
 lambda = wave_length;
@@ -84,7 +84,7 @@ img(img > theshold2) = theshold2;
 figure;imagesc(img); colormap('gray');
 img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
 clear img;
-imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_win_bigsquint.jpg');
+imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_4096.jpg');
 % imwrite(img_uint8,'E:/zhaofei/repo/sar-algorithm/output/scene_rd.tiff');
 
 
@@ -111,13 +111,25 @@ imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_w
 % colormap('gray');
 % 
 % %% 自适应中值滤波
-% x_filtered = medfilt2(tmp,[5,5]);
-% % x_filtered=selfAdaption_Medianfilter(tmp);
-% figure;
-% imagesc(x_filtered);
-% colormap(gray);
-% figure;
-% imshow(histeq(x_filtered),[]);
-% colormap('gray');
+img_filtered_matlab = medfilt2(abs(s),[5,5]);
+img_filtered=selfAdaption_Medianfilter(abs(s));
+
+values = sort(img_filtered_matlab(:),'ascend');
+theshold1 = values(round(0.02*Nrg*Naz));
+theshold2 = values(round(0.98*Nrg*Naz));
+img_filtered_matlab(img_filtered_matlab < theshold1) = theshold1;
+img_filtered_matlab(img_filtered_matlab > theshold2) = theshold2;
+figure;imagesc(img_filtered_matlab); colormap('gray');
+img_filtered_matlab_uint8 = uint8((img_filtered_matlab-min(img_filtered_matlab(:)))/(max(img_filtered_matlab(:))-min(img_filtered_matlab(:)))*255);
+imwrite(img_filtered_matlab_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_medfilt_4096.jpg');
+
+values = sort(img_filtered(:),'ascend');
+theshold1 = values(round(0.02*Nrg*Naz));
+theshold2 = values(round(0.98*Nrg*Naz));
+img_filtered(img_filtered < theshold1) = theshold1;
+img_filtered(img_filtered > theshold2) = theshold2;
+figure;imagesc(img_filtered); colormap('gray');
+img_filtered_uint8 = uint8((img_filtered-min(img_filtered(:)))/(max(img_filtered(:))-min(img_filtered(:)))*255);
+imwrite(img_filtered_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_adaptmedfilt_4096.jpg');
 
 

@@ -22,8 +22,12 @@ function [GMG,LS,Dynamic_range,EVA,Mean,Var] = ImageEvaluation(img)
 等效视数(ENL)：等效视数度量了图像区分具有不同后向散射特性区域的能力，是衡量一幅SAR图像斑点噪声相对强度的一种指标，
 等效视数越大，表明图像上斑点越弱。其计算方法为对SAR图像均匀区域的灰度均值与方差求商再平方。
 %}
+
+img=double(img);
+img=mapminmax(img,0,255);
 [M,N]=size(img);
 img=abs(img);
+
 
 Column=reshape(img,1,M*N);
 Mean=mean(Column);
@@ -46,12 +50,12 @@ laplace=[-1 -1 -1;
          -1 -1 -1];
 res=conv2(img,laplace,'valid');
 LS=sum(sum(abs(res)))/(M-2)/(N-2);
-values = sort(res(:),'ascend');
-theshold1 = values(round(0.02*M*N));
-theshold2 = values(round(0.98*M*N));
-res(res < theshold1) = theshold1;
-res(res > theshold2) = theshold2;
-figure;imagesc(res); colormap('gray');title('拉普拉斯算子边缘检测1');
+% values = sort(res(:),'ascend');
+% theshold1 = values(round(0.02*M*N));
+% theshold2 = values(round(0.98*M*N));
+% res(res < theshold1) = theshold1;
+% res(res > theshold2) = theshold2;
+% figure;imagesc(res); colormap('gray');title('拉普拉斯算子边缘检测1');
 
 clear res
 disp('LS计算完成');
