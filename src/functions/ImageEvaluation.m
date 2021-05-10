@@ -24,9 +24,11 @@ function [GMG,LS,Dynamic_range,EVA,Mean,Var] = ImageEvaluation(img)
 %}
 [M,N]=size(img);
 img=abs(img);
+
 Column=reshape(img,1,M*N);
 Mean=mean(Column);
 Var=var(Column);
+clear Column
 
 %% Gray Mean Grads，GMG 灰度平均梯度值
 X=zeros(M-1,N-1);
@@ -36,7 +38,8 @@ for i=1:M-1
     end
 end
 GMG=sum(sum(X))/(M-1)/(N-1);
-
+disp('GMG计算完成');
+clear X
 %% Laplacian 拉普拉斯算子和(LS)
 laplace=[-1 -1 -1;
          -1 1 -1;
@@ -47,7 +50,8 @@ LS=sum(sum(abs(res)))/(M-2)/(N-2);
 % imagesc(abs(res));
 % colormap(gray);
 % title('拉普拉斯算子边缘检测');
-
+clear res
+disp('LS计算完成');
 %% 动态范围（英语：dynamic range）
 Imin=min(min(img));
 Imax=max(max(img));
@@ -57,7 +61,7 @@ if Imin==0
 else
     Dynamic_range=10*log10(Imax/Imin);
 end
-
+disp('Dynamic range计算完成');
 %% 
 tmp1 = zeros(M-2,N-2);
 tmp2 = zeros(M-2,N-2);
@@ -69,8 +73,8 @@ for x = 2:M-1
 end
 e=tmp1+tmp2;%e(x-1,y-1)存有f(x,y)的8领域加权差值和
 EVA=sum(sum(e))/(M-2)/(N-2);
-
-
+disp('EVA计算完成');
+clear tmp1 tmp2
 %% 等效视数(ENL)
 % ENL = (Mean/Var).^2;
 %怎么寻找均匀区域？

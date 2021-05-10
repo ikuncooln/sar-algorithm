@@ -39,9 +39,10 @@ Hrc3 = repmat(Hrc3, Naz, 1);
 S0 = fft(s0.').';
 Src = S0 .* Hrc3 .* repmat(ifftshift(kaiser(Nrg, 2.5).'), Naz, 1);   % 选择方式1或2或3进行距离压缩
 s_rc = ifft(Src.').';
-
+clear  S0 s0 Hrc3 Src Hrc3_tmp f_eta
 %% 4. 方位向傅里叶变换
 Srd = fft(s_rc);
+clear s_rc
 % figure; % 绘制距离多普勒域里的距离压缩后的结果
 % subplot(121);imagesc(real(Srd));xlabel('距离向时间（采样点）');ylabel('方位向频率（采样点）');title('(a)实部');set(gca, 'YDir', 'normal');
 % subplot(122);imagesc(abs(Srd));xlabel('距离向时间（采样点）');title('(b)幅度');set(gca, 'YDir', 'normal');
@@ -52,6 +53,7 @@ f_eta = (ifftshift((-Naz/2 : Naz/2-1) * Fa / Naz)).';
 f_eta = f_eta + round((f_etac - f_eta) / Fa) * Fa;
 R0 = tau * c / 2 * cos(theta_rc);
 [R0_grid, f_eta_grid] = meshgrid(R0, f_eta);
+
 % 计算距离徙动量矩阵
 RCM = lambda^2 * R0_grid .* f_eta_grid.^2 / 8 / Vr^2;
 % 此处要非常小心：因为校正时认为Srcmc和Srd矩阵元素是一一对应，但它们所表示的
@@ -86,21 +88,25 @@ for i = 1:Naz
         
     end
 end
-
+clear  RCM
 % figure; % 绘制距离多普勒域里的距离压徙动校正后的结果
 % subplot(121);imagesc(real(Srcmc));xlabel('距离向时间（采样点）');ylabel('方位向频率（采样点）');title('(a)实部');set(gca, 'YDir', 'normal');
 % subplot(122);imagesc(abs(Srcmc));xlabel('距离向时间（采样点）');title('(b)幅度');set(gca, 'YDir', 'normal');
 % suptitle('3.5度斜视角距离徙动校正后信号（距离多普勒域）');
 
 %% 6. 方位压缩
+% Srcmc=Srd;
+% clear Srd
 Ka = 2 * Vr^2 / lambda ./ R0_grid;
+clear R0_grid
 Haz = exp(-1j*pi*f_eta_grid.^2./Ka);
 Srd_ac = Srcmc .* Haz;
-
+clear   Srcmc
 %% 7. 得到时域SAR图像
 % 方位向乘以线性相位，以使得轴的中心对应中心目标的零多普勒时刻（有利于最终图像的显示）
 % 或者另一种解释：最终的时间轴是eta0为中心，而我们的目标点显示以0为中心，所以我们可以将目标们搬到eta0附近，以便显示
 Srd_ac = Srd_ac .* exp(-1j*2*pi*f_eta_grid*eta0);
+clear f_eta_grid
 img_rd = ifft(Srd_ac);
 
 % x = ((-Nrg / 2) : (Nrg / 2 - 1)) / Fr * c / 2;

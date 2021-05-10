@@ -1,4 +1,4 @@
-function [ img_rd] = RDA( s0, lambda, Kr, Vr, Fr, PRF,center_R0,theta_rc_deg)
+function [ img_rd] = RDA( s0, lambda, Kr, Vr, Fr, PRF,center_R0,theta_rc_deg,Tr)
 %   Range Doppler Algorithm
 % input:
 %   s0,基带回波数据，每一列为等距离门。
@@ -35,7 +35,7 @@ clear window_r
 s0_tmp = fft(s0.').';          %距离频域方位时域 fft默认按列
 %注意这里不用fftshift
 Src = s0_tmp.*Hrc;             %匹配滤波
-s_rc = ifft(Src.').';
+s_rc = ifft(Src.').';          %到距离时域看
 
 % if flag == 1 
 %     figure;
@@ -51,7 +51,7 @@ clear s0  Hrc s0_tmp Src
 Srd = fft(s_rc);
 clear s_rc
 %% 二次距离压缩(二维频域进行）
-S2df  = fft(Srd.').';          %前面为了观察频域做了傅里叶逆变换，实际可以省略。
+S2df  = fft(Srd.').';          %前面为了观察距离时域做了傅里叶逆变换，实际可以省略。
 clear Srd
 f_eta = (ifftshift((-Naz/2:Naz/2-1)*Fa/Naz)).';
 f_eta = f_eta + round((f_etac - f_eta)/Fa)*Fa;
@@ -130,7 +130,7 @@ close(hwait);
 
 clear RCM kwin
 %% 方位向压缩
-% Srcmc=s_src;%不做距离徙动校正
+% Srcmc=Srd;%不做距离徙动校正
 Haz = exp(1j*4*pi.*R0_grid.*D_grid *f0 /c);% 注意此处方位压缩多补偿了个4*pi*R0*f0/c的相位
 Srd_ac = Srcmc.*Haz;
 clear Srcmc R0_grid D_grid  Haz

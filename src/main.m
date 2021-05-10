@@ -18,8 +18,8 @@ file_size = range_size * azimuth_size * 8;
 
 %% 1. read data
 x0 = 1; y0 = 1;
-% height = 20480; width = 16384;
-height = 4096; width = 4096;
+height = 20480; width = 16384;
+% height = 4096; width = 4096;
 % data_file = 'E:/学校/研一下/SAR信号处理与运动补偿/h2/data_after_moco.dat';
 data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\data_after_moco.dat';
 
@@ -27,21 +27,21 @@ disp('读取数据中');
 s0 = read_data( data_file, range_size, x0, y0, height, width);
 disp('数据读取完成');
 
-% figure;
-% imagesc(real(s0));
-% colormap('gray');+
-% title('原始信号实部');
-% figure;
-% subplot 211
-% plot(real(s0(1,:)));
-% xlabel('时间（采样点)');
-% ylabel('幅度');
-% subplot 212
-% f=(-range_sample_rate/2:range_sample_rate/width:range_sample_rate/2-range_sample_rate/width);
-% plot(f/1e6,fftshift(abs(fft(real(s0(1,:))))));
-% xlabel('频率MHz');
-% ylabel('幅度');
-% axis tight
+figure;
+imagesc(real(s0));
+colormap('gray');
+title('原始信号实部');
+figure;
+subplot 211
+plot(real(s0(1,:)));
+xlabel('时间（采样点)');
+ylabel('幅度');
+subplot 212
+f=(-range_sample_rate/2:range_sample_rate/width:range_sample_rate/2-range_sample_rate/width);
+plot(f/1e6,fftshift(abs(fft(real(s0(1,:))))));
+xlabel('频率MHz');
+ylabel('幅度');
+axis tight
 %% 2. convert the prameters to standar vaiables
 c = 299792458;
 lambda = wave_length;
@@ -63,10 +63,13 @@ f_etac = 2 * Vr * sin(theta_rc) / lambda;
 
 %% 3. 成像处理
 disp('开始成像');
-% s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg);
-s = wKA( s0, lambda, Kr, Vr, Fr, Fa, center_R0, f_etac ,Tr);
+tic
+s = RDA(s0, lambda, Kr, Vr, Fr, Fa, center_R0, theta_rc_deg,Tr);
+% s = wKA( s0, lambda, Kr, Vr, Fr, Fa, center_R0, f_etac ,Tr);
 % s = wKA1(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
 % s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,1);
+% s = RDA_smallSquintAngle(s0, lambda, Kr, Vr, Fr, PRF, theta_rc_deg ,near_range,Tr);
+toc
 clear s0;
 img = abs(s);
 % figure;imagesc(img); colormap('gray');
@@ -81,7 +84,7 @@ img(img > theshold2) = theshold2;
 figure;imagesc(img); colormap('gray');
 img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
 clear img;
-imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_wk_4096_win.bmp');
+imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_win_bigsquint.jpg');
 % imwrite(img_uint8,'E:/zhaofei/repo/sar-algorithm/output/scene_rd.tiff');
 
 
