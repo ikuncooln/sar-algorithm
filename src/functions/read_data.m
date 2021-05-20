@@ -20,8 +20,7 @@ s0 = zeros(height, width);  % store the signal
 
 fid = fopen(file_name, 'r');
 if fid==-1
-    disp(['文件', file_name, '不存在'])
-    return;
+    error(['文件', file_name, '不存在']);
 end
 offset = (2*(x0-1) + W*2*(y0-1))*4;
 fseek(fid, 0, -1);
