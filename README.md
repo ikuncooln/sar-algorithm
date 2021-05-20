@@ -17,7 +17,7 @@ Also, we'd appreciate it that if you could help us to perfect these codes. Any m
 ## Hierarchy
 
 - :open_file_folder:src
-  - :open_file_folder: ?functions
+  - :open_file_folder:functions
     - :page_facing_up:RDA.m
     - :page_facing_up:CSA.m
     - :page_facing_up:wKA.m

@@ -1,112 +1,112 @@
 close all;clear all;
-%% 1. ä»¿çœŸå‚æ•° (å‚è€ƒ p142, table 6.1)
-center_Rc = 20e3;  % æ™¯ä¸­å¿ƒæ–œè·
-Vr = 150;   % ç­‰æ•ˆé›·è¾¾é€Ÿåº¦
-Tr = 2.5e-6;    % å‘å°„è„‰å†²æ—¶å®½
-Kr = 20e12; % è·ç¦»è°ƒé¢‘ç‡
-f0 = 5.3e9; % é›·è¾¾å·¥ä½œé¢‘ç‡
-BW_dop = 80;    % å¤šæ™®å‹’å¸¦å®½
-Fr = 60e6;  % è·ç¦»é‡‡æ ·ç‡
-Fa = 100;   % æ–¹ä½é‡‡æ ·ç‡
-Naz = 256;  % æ–¹ä½å‘é‡‡æ ·ç‚¹æ•°ï¼ˆè·ç¦»çº¿æ¡æ•°ï¼‰
-Nrg = 256;  % è·ç¦»å‘é‡‡æ ·ç‚¹æ•°ï¼ˆè·ç¦»çº¿é‡‡æ ·ç‚¹æ•°ï¼‰
-theta_rc_deg = 21.9; % å¤§æ–œè§†è§’21.9åº¦
-c = 299792458;    % å…‰é€Ÿ
+%% 1. ·ÂÕæ²ÎÊı (²Î¿¼ p142, table 6.1)
+center_Rc = 20e3;  % ¾°ÖĞĞÄĞ±¾à
+Vr = 150;   % µÈĞ§À×´ïËÙ¶È
+Tr = 2.5e-6;    % ·¢ÉäÂö³åÊ±¿í
+Kr = 20e12; % ¾àÀëµ÷ÆµÂÊ
+f0 = 5.3e9; % À×´ï¹¤×÷ÆµÂÊ
+BW_dop = 80;    % ¶àÆÕÀÕ´ø¿í
+Fr = 60e6;  % ¾àÀë²ÉÑùÂÊ
+Fa = 100;   % ·½Î»²ÉÑùÂÊ
+Naz = 256;  % ·½Î»Ïò²ÉÑùµãÊı£¨¾àÀëÏßÌõÊı£©
+Nrg = 256;  % ¾àÀëÏò²ÉÑùµãÊı£¨¾àÀëÏß²ÉÑùµãÊı£©
+theta_rc_deg = 21.9; % ´óĞ±ÊÓ½Ç21.9¶È
+c = 299792458;    % ¹âËÙ
 
 % derived params
 lambda = c / f0;
 theta_rc = theta_rc_deg * pi / 180;
 Vs = Vr;
 Vg = Vr;
-Np = Tr * Fr;   % è„‰å†²åºåˆ—é•¿åº¦ï¼ˆé‡‡æ ·ç‚¹æ•°ï¼‰
+Np = Tr * Fr;   % Âö³åĞòÁĞ³¤¶È£¨²ÉÑùµãÊı£©
 alpha_os_r = Fr / (Kr*Tr);
 alpha_os_a = Fa / BW_dop;
 
-%% 2. ç”ŸæˆåŸå§‹é›·è¾¾æ•°æ®
-NUM_TARGETS = 3;    % ä»¿çœŸçš„ç›®æ ‡æ•°ä¸º3
-rs = [0, 0, 30];    % å„ç›®æ ‡è·ç¦»å‘è·ç¦»
-as = [-20, 0, -7.94]; % ç›®æ ‡ç›¸å¯¹æ–¹ä½å‘è·ç¦»
+%% 2. Éú³ÉÔ­Ê¼À×´ïÊı¾İ
+NUM_TARGETS = 3;    % ·ÂÕæµÄÄ¿±êÊıÎª3
+rs = [0, 0, 30];    % ¸÷Ä¿±ê¾àÀëÏò¾àÀë
+as = [-20, 0, -7.94]; % Ä¿±êÏà¶Ô·½Î»Ïò¾àÀë
 parameters = struct(...
-    'center_Rc', center_Rc,...          % æ™¯ä¸­å¿ƒæ–œè·
-    'theta_rc_deg', theta_rc_deg,...    % æ–œè§†è§’
-    'Nrg', Nrg,...                      % è·ç¦»å‘é‡‡æ ·ç‚¹æ•°
-    'Naz', Naz,...                      % æ–¹ä½å‘é‡‡æ ·ç‚¹æ•°
-    'Vr', Vr,...                        % è½½æœºé€Ÿåº¦
-    'f0', f0,...                        % è½½æ³¢é¢‘ç‡
-    'Tr', Tr,...                        % å‘å°„è„‰å†²å®½åº¦
-    'Kr', Kr,...                        % å‘å°„è„‰å†²è°ƒé¢‘ç‡
-    'BW_dop', BW_dop,...                % å¤šæ™®å‹’å¸¦å®½
-    'alpha_os_r', alpha_os_r,...        % è·ç¦»å‘è¿‡é‡‡æ ·ç‡
-    'alpha_os_a', alpha_os_a,...        % æ–¹ä½å‘è¿‡é‡‡æ ·ç‡
-    'NUM_TARGETS', NUM_TARGETS,...      % ç‚¹ç›®æ ‡æ•°é‡
-    'rs', rs,...                        % ç‚¹ç›®æ ‡è·ç¦»å‘åæ ‡ï¼ˆmï¼‰
-    'as', as...                         % ç‚¹ç›®æ ‡æ–¹ä½å‘åæ ‡ï¼ˆmï¼‰
+    'center_Rc', center_Rc,...          % ¾°ÖĞĞÄĞ±¾à
+    'theta_rc_deg', theta_rc_deg,...    % Ğ±ÊÓ½Ç
+    'Nrg', Nrg,...                      % ¾àÀëÏò²ÉÑùµãÊı
+    'Naz', Naz,...                      % ·½Î»Ïò²ÉÑùµãÊı
+    'Vr', Vr,...                        % ÔØ»úËÙ¶È
+    'f0', f0,...                        % ÔØ²¨ÆµÂÊ
+    'Tr', Tr,...                        % ·¢ÉäÂö³å¿í¶È
+    'Kr', Kr,...                        % ·¢ÉäÂö³åµ÷ÆµÂÊ
+    'BW_dop', BW_dop,...                % ¶àÆÕÀÕ´ø¿í
+    'alpha_os_r', alpha_os_r,...        % ¾àÀëÏò¹ı²ÉÑùÂÊ
+    'alpha_os_a', alpha_os_a,...        % ·½Î»Ïò¹ı²ÉÑùÂÊ
+    'NUM_TARGETS', NUM_TARGETS,...      % µãÄ¿±êÊıÁ¿
+    'rs', rs,...                        % µãÄ¿±ê¾àÀëÏò×ø±ê£¨m£©
+    'as', as...                         % µãÄ¿±ê·½Î»Ïò×ø±ê£¨m£©
 );
 
 [ s0, f_etac, delta_r, delta_a, center_R0, center_Rc ] = generate_point_data(parameters);
 
-figure; % ç»˜åˆ¶å¤§æ–œè§†è§’æƒ…å†µä¸‹çš„ä¸‰ç‚¹é›·è¾¾åŸå§‹ä»¿çœŸä¿¡å·
-subplot(221);imagesc(real(s0));ylabel('æ–¹ä½å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(a)å®éƒ¨');
-subplot(222);imagesc(imag(s0));title('(b)è™šéƒ¨');
-subplot(223);imagesc(abs(s0));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(c)å¹…åº¦');
-subplot(224);imagesc(angle(s0));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(d)ç›¸ä½');
-suptitle([num2str(theta_rc_deg), 'åº¦æ–œè§†è§’æƒ…å†µä¸‹çš„', num2str(NUM_TARGETS),'ç‚¹é›·è¾¾åŸå§‹ä»¿çœŸä¿¡å·ï¼ˆæ—¶åŸŸï¼‰']);
+figure; % »æÖÆ´óĞ±ÊÓ½ÇÇé¿öÏÂµÄÈıµãÀ×´ïÔ­Ê¼·ÂÕæĞÅºÅ
+subplot(221);imagesc(real(s0));ylabel('·½Î»ÏòÊ±¼ä£¨²ÉÑùµã£©');title('(a)Êµ²¿');
+subplot(222);imagesc(imag(s0));title('(b)Ğé²¿');
+subplot(223);imagesc(abs(s0));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');ylabel('·½Î»ÏòÊ±¼ä£¨²ÉÑùµã£©');title('(c)·ù¶È');
+subplot(224);imagesc(angle(s0));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');title('(d)ÏàÎ»');
+suptitle([num2str(theta_rc_deg), '¶ÈĞ±ÊÓ½ÇÇé¿öÏÂµÄ', num2str(NUM_TARGETS),'µãÀ×´ïÔ­Ê¼·ÂÕæĞÅºÅ£¨Ê±Óò£©']);
 
 
-%% è·ç¦»å‹ç¼©(é‡‡ç”¨æ–¹å¼3åŒ¹é…æ»¤æ³¢ï¼‰
-f_tau = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg); % è·ç¦»å‘é¢‘ç‡è½´
+%% ¾àÀëÑ¹Ëõ(²ÉÓÃ·½Ê½3Æ¥ÅäÂË²¨£©
+f_tau = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg); % ¾àÀëÏòÆµÂÊÖá
 Hrc = exp(1j*pi*f_tau.^2/Kr);  % Matched filter in Frequency domain
 a_os_r = Fr/abs(Kr*Tr);
-N_BW_r = round(Nrg/a_os_r);            % Kr*TråŒ…å«çš„ç‚¹æ•°
-window_r = ifftshift(kaiser(N_BW_r,2.5)');    % Kaiserçª—
+N_BW_r = round(Nrg/a_os_r);            % Kr*Tr°üº¬µÄµãÊı
+window_r = ifftshift(kaiser(N_BW_r,2.5)');    % Kaiser´°
 window_r = repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);
 Hrc = repmat(Hrc,Naz,1);
 Hrc = Hrc.*window_r;
-s0_tmp = fft(s0.').';          %è·ç¦»é¢‘åŸŸæ–¹ä½æ—¶åŸŸ ffté»˜è®¤æŒ‰åˆ—
-%æ³¨æ„è¿™é‡Œä¸ç”¨fftshift
-Src = s0_tmp.*Hrc;             %åŒ¹é…æ»¤æ³¢
+s0_tmp = fft(s0.').';          %¾àÀëÆµÓò·½Î»Ê±Óò fftÄ¬ÈÏ°´ÁĞ
+%×¢ÒâÕâÀï²»ÓÃfftshift
+Src = s0_tmp.*Hrc;             %Æ¥ÅäÂË²¨
 s_rc = ifft(Src.').';
 
-%% æ–¹ä½å‘å‚…é‡Œå¶å˜æ¢
+%% ·½Î»Ïò¸µÀïÒ¶±ä»»
 Srd = fft(s_rc);
-figure; % ç»˜åˆ¶è·ç¦»å‹ç¼©åçš„ç»“æœ
-subplot(221);imagesc(real(s_rc));ylabel('æ–¹ä½å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(a)äºŒæ¬¡è·ç¦»å‹ç¼©å‰å®éƒ¨ï¼ˆå®éƒ¨ï¼‰');
-subplot(222);imagesc(abs(s_rc));title('(b)äºŒæ¬¡è·ç¦»å‹ç¼©å‰å¹…åº¦ï¼ˆå®éƒ¨ï¼‰');
-subplot(223);imagesc(real(Srd));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘é¢‘ç‡ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(c)äºŒæ¬¡è·ç¦»å‹ç¼©å‰å®éƒ¨ï¼ˆè·ç¦»å¤šæ™®å‹’åŸŸï¼‰');set(gca, 'YDir', 'normal');
-subplot(224);imagesc(abs(Srd));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(d)äºŒæ¬¡è·ç¦»å‹ç¼©å‰å¹…åº¦ï¼ˆè·ç¦»å¤šæ™®å‹’åŸŸï¼‰');set(gca, 'YDir', 'normal');
-suptitle('21.9åº¦æ–œè§†è§’è·ç¦»å‹ç¼©åä¿¡å·ï¼ˆæ—¶åŸŸä¸è·ç¦»å¤šæ™®å‹’åŸŸï¼‰');
-%% äºŒæ¬¡è·ç¦»å‹ç¼©(äºŒç»´é¢‘åŸŸè¿›è¡Œï¼‰
-S2df  = fft(Srd.').';          %å‰é¢ä¸ºäº†è§‚å¯Ÿé¢‘åŸŸåšäº†å‚…é‡Œå¶é€†å˜æ¢ï¼Œå®é™…å¯ä»¥çœç•¥ã€‚
+figure; % »æÖÆ¾àÀëÑ¹ËõºóµÄ½á¹û
+subplot(221);imagesc(real(s_rc));ylabel('·½Î»ÏòÊ±¼ä£¨²ÉÑùµã£©');title('(a)¶ş´Î¾àÀëÑ¹ËõÇ°Êµ²¿£¨Ê±Óò£©');
+subplot(222);imagesc(abs(s_rc));title('(b)¶ş´Î¾àÀëÑ¹ËõÇ°·ù¶È£¨Ê±Óò£©');
+subplot(223);imagesc(real(Srd));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');ylabel('·½Î»ÏòÆµÂÊ£¨²ÉÑùµã£©');title('(c)¶ş´Î¾àÀëÑ¹ËõÇ°Êµ²¿£¨¾àÀë¶àÆÕÀÕÓò£©');set(gca, 'YDir', 'normal');
+subplot(224);imagesc(abs(Srd));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');title('(d)¶ş´Î¾àÀëÑ¹ËõÇ°·ù¶È£¨¾àÀë¶àÆÕÀÕÓò£©');set(gca, 'YDir', 'normal');
+suptitle('21.9¶ÈĞ±ÊÓ½Ç¾àÀëÑ¹ËõºóĞÅºÅ£¨Ê±ÓòÓë¾àÀë¶àÆÕÀÕÓò£©');
+%% ¶ş´Î¾àÀëÑ¹Ëõ(¶şÎ¬ÆµÓò½øĞĞ£©
+S2df  = fft(Srd.').';          %Ç°ÃæÎªÁË¹Û²ìÆµÓò×öÁË¸µÀïÒ¶Äæ±ä»»£¬Êµ¼Ê¿ÉÒÔÊ¡ÂÔ¡£
 f_eta = (ifftshift((-Naz/2:Naz/2-1)*Fa/Naz)).';
 f_eta = f_eta + round((f_etac - f_eta)/Fa)*Fa;
 tau0 = 2*center_R0/cos(theta_rc)/c;
-tau = (-Nrg/2:Nrg/2-1)/Fr+tau0;  % è·ç¦»æ—¶é—´è½´
+tau = (-Nrg/2:Nrg/2-1)/Fr+tau0;  % ¾àÀëÊ±¼äÖá
 R0 = tau*c/2*cos(theta_rc);
 [R0_grid,f_eta_grid] = meshgrid(R0,f_eta);
 
-%è®¡ç®—Range-DoppleråŸŸä¸­çš„è·ç¦»å¾™åŠ¨å› å­
+%¼ÆËãRange-DopplerÓòÖĞµÄ¾àÀëáã¶¯Òò×Ó
 D = sqrt(1-lambda^2.*f_eta.^2/4/Vr^2);
-%è®¡ç®—äºŒæ¬¡å‹ç¼©è°ƒé¢‘ç‡
+%¼ÆËã¶ş´ÎÑ¹Ëõµ÷ÆµÂÊ
 Ksrc = 2*Vr^2*f0^3.*D.^3/c/center_R0./f_eta.^2;
 f_tau_mtx = repmat(f_tau,Naz,1);
-%è®¡ç®—äºŒæ¬¡å‹ç¼©æ»¤æ³¢å™¨
+%¼ÆËã¶ş´ÎÑ¹ËõÂË²¨Æ÷
 Hsrc = exp(-1j*pi*f_tau_mtx.^2./repmat(Ksrc,1,Nrg));
-Ssrc = S2df.*Hsrc;              %äºŒç»´é¢‘åŸŸä¸­å®ç°äºŒæ¬¡å‹ç¼©
+Ssrc = S2df.*Hsrc;              %¶şÎ¬ÆµÓòÖĞÊµÏÖ¶ş´ÎÑ¹Ëõ
 s_src = ifft(Ssrc.').';
 
-figure; % ç»˜åˆ¶è·ç¦»å¤šæ™®å‹’åŸŸé‡Œè·ç¦»å‹ç¼©åå’ŒäºŒæ¬¡è·ç¦»å‹ç¼©åçš„ç»“æœ
-subplot(221);imagesc(real(Srd));ylabel('æ–¹ä½å‘é¢‘ç‡ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(a)äºŒæ¬¡è·ç¦»å‹ç¼©å‰å®éƒ¨');set(gca, 'YDir', 'normal');
-subplot(222);imagesc(abs(Srd));title('(b)äºŒæ¬¡è·ç¦»å‹ç¼©å‰å¹…åº¦');set(gca, 'YDir', 'normal');
-subplot(223);imagesc(real(s_src));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘é¢‘ç‡ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(c)äºŒæ¬¡è·ç¦»å‹ç¼©åå®éƒ¨');set(gca, 'YDir', 'normal');
-subplot(224);imagesc(abs(s_src));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(d)äºŒæ¬¡è·ç¦»å‹ç¼©åå¹…åº¦');set(gca, 'YDir', 'normal');
-suptitle('21.9åº¦æ–œè§†è§’äºŒæ¬¡è·ç¦»å‹ç¼©å‰åä¿¡å·å¯¹æ¯”ï¼ˆè·ç¦»å¤šæ™®å‹’åŸŸï¼‰');
+figure; % »æÖÆ¾àÀë¶àÆÕÀÕÓòÀï¾àÀëÑ¹ËõºóºÍ¶ş´Î¾àÀëÑ¹ËõºóµÄ½á¹û
+subplot(221);imagesc(real(Srd));ylabel('·½Î»ÏòÆµÂÊ£¨²ÉÑùµã£©');title('(a)¶ş´Î¾àÀëÑ¹ËõÇ°Êµ²¿');set(gca, 'YDir', 'normal');
+subplot(222);imagesc(abs(Srd));title('(b)¶ş´Î¾àÀëÑ¹ËõÇ°·ù¶È');set(gca, 'YDir', 'normal');
+subplot(223);imagesc(real(s_src));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');ylabel('·½Î»ÏòÆµÂÊ£¨²ÉÑùµã£©');title('(c)¶ş´Î¾àÀëÑ¹ËõºóÊµ²¿');set(gca, 'YDir', 'normal');
+subplot(224);imagesc(abs(s_src));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');title('(d)¶ş´Î¾àÀëÑ¹Ëõºó·ù¶È');set(gca, 'YDir', 'normal');
+suptitle('21.9¶ÈĞ±ÊÓ½Ç¶ş´Î¾àÀëÑ¹ËõÇ°ºóĞÅºÅ¶Ô±È£¨¾àÀë¶àÆÕÀÕÓò£©');
 
-%% è·ç¦»å¾™åŠ¨æ ¡æ­£ï¼ˆRCMC)
+%% ¾àÀëáã¶¯Ğ£Õı£¨RCMC)
 D_grid = repmat(D,1,Nrg);
 RCM = R0_grid./D_grid-R0_grid;
 RCM = RCM - (1/cos(theta_rc)-1)*R0_grid;
-RCM = RCM / delta_r; %å°†è·ç¦»å¾™åŠ¨é‡è½¬æ¢ä¸ºè·ç¦»å•å…ƒåç§»é‡ã€‚
-% è®¡ç®—æ’å€¼æ ¸ç³»æ•°è¡¨
+RCM = RCM / delta_r; %½«¾àÀëáã¶¯Á¿×ª»»Îª¾àÀëµ¥ÔªÆ«ÒÆÁ¿¡£
+% ¼ÆËã²åÖµºËÏµÊı±í
 x_tmp = repmat(-4:3, 16, 1);
 offset_tmp = (1:16)/16;
 x_tmp = x_tmp + repmat(offset_tmp.', 1, 8);
@@ -117,42 +117,46 @@ kwin = repmat(kaiser(16*8, 2.5).', 16, 1);
 hx = kwin(x_tmp16) .* hx;
 hx = hx ./ repmat(sum(hx, 2), 1, 8);
 
-% æ’å€¼æ ¡æ­£
-Srcmc = zeros(Naz, Nrg);  % å­˜æ”¾è·ç¦»å¾™åŠ¨æ ¡æ­£åçš„å›æ³¢ä¿¡å·
+% ²åÖµĞ£Õı
+Srcmc = zeros(Naz, Nrg);  % ´æ·Å¾àÀëáã¶¯Ğ£ÕıºóµÄ»Ø²¨ĞÅºÅ
 for i = 1:Naz
     for j = 1:Nrg
         offset_int = ceil(RCM(i,j));
         offset_frac = round((offset_int - RCM(i,j)) * 16);
         if offset_frac == 0
-            Srcmc(i,j) = s_src(i,ceil(mod(j+offset_int-0.1,Nrg)));   % åˆ©ç”¨ä¿¡å·æ•°æ®S1çš„å‘¨æœŸæ€§å‡å®š
+            Srcmc(i,j) = s_src(i,ceil(mod(j+offset_int-0.1,Nrg)));   % ÀûÓÃĞÅºÅÊı¾İS1µÄÖÜÆÚĞÔ¼Ù¶¨
         else
             Srcmc(i,j) = s_src(i, ceil(mod((j+offset_int-4:j+offset_int+3)-0.1,Nrg))) * hx(offset_frac,:).';
         end
         
     end
 end
+figure; % »æÖÆ¾àÀë¶àÆÕÀÕÓòÀïµÄ¾àÀëÑ¹áã¶¯Ğ£ÕıÇ°µÄ½á¹û
+subplot(121);imagesc(real(s_src));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');ylabel('·½Î»ÏòÆµÂÊ£¨²ÉÑùµã£©');title('(a)Êµ²¿');set(gca, 'YDir', 'normal');
+subplot(122);imagesc(abs(s_src));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');title('(b)·ù¶È');set(gca, 'YDir', 'normal');
+suptitle('21.9¶ÈĞ±ÊÓ½Ç¾àÀëáã¶¯Ğ£ÕıÇ°ĞÅºÅ£¨¾àÀë¶àÆÕÀÕÓò£©');
 
-figure; % ç»˜åˆ¶è·ç¦»å¤šæ™®å‹’åŸŸé‡Œçš„è·ç¦»å‹å¾™åŠ¨æ ¡æ­£åçš„ç»“æœ
-subplot(121);imagesc(real(Srcmc));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘é¢‘ç‡ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(a)å®éƒ¨');set(gca, 'YDir', 'normal');
-subplot(122);imagesc(abs(Srcmc));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(b)å¹…åº¦');set(gca, 'YDir', 'normal');
-suptitle('21.9åº¦æ–œè§†è§’è·ç¦»å¾™åŠ¨æ ¡æ­£åä¿¡å·ï¼ˆè·ç¦»å¤šæ™®å‹’åŸŸï¼‰');
+figure; % »æÖÆ¾àÀë¶àÆÕÀÕÓòÀïµÄ¾àÀëÑ¹áã¶¯Ğ£ÕıºóµÄ½á¹û
+subplot(121);imagesc(real(Srcmc));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');ylabel('·½Î»ÏòÆµÂÊ£¨²ÉÑùµã£©');title('(a)Êµ²¿');set(gca, 'YDir', 'normal');
+subplot(122);imagesc(abs(Srcmc));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');title('(b)·ù¶È');set(gca, 'YDir', 'normal');
+suptitle('21.9¶ÈĞ±ÊÓ½Ç¾àÀëáã¶¯Ğ£ÕıºóĞÅºÅ£¨¾àÀë¶àÆÕÀÕÓò£©');
 
-%% æ–¹ä½å‘å‹ç¼©
-% Srcmc=s_src;%ä¸åšè·ç¦»å¾™åŠ¨æ ¡æ­£
-Haz = exp(1j*4*pi.*R0_grid.*D_grid *f0 /c);% æ³¨æ„æ­¤å¤„æ–¹ä½å‹ç¼©å¤šè¡¥å¿äº†ä¸ª4*pi*R0*f0/cçš„ç›¸ä½
+%% ·½Î»ÏòÑ¹Ëõ
+% Srcmc=s_src;%²»×ö¾àÀëáã¶¯Ğ£Õı
+Haz = exp(1j*4*pi.*R0_grid.*D_grid *f0 /c);% ×¢Òâ´Ë´¦·½Î»Ñ¹Ëõ¶à²¹³¥ÁË¸ö4*pi*R0*f0/cµÄÏàÎ»
 Srd_ac = Srcmc.*Haz;
 %%
-eta0 = -center_R0 / cos(theta_rc)*sin(theta_rc)/Vr; %æ™¯ä¸­å¿ƒç‚¹å¯¹åº”çš„ç›¸å¯¹æ³¢æŸä¸­å¿ƒç©¿è¶Šæ—¶åˆ»ï¼›
+eta0 = -center_R0 / cos(theta_rc)*sin(theta_rc)/Vr; %¾°ÖĞĞÄµã¶ÔÓ¦µÄÏà¶Ô²¨ÊøÖĞĞÄ´©Ô½Ê±¿Ì£»
 Srd_ac = Srd_ac.*exp(-1j*2*pi*f_eta_grid*eta0);
 img_rd = ifft(Srd_ac);
 
-figure; % ç»˜åˆ¶ä½æ–œè§†è§’æƒ…å†µä¸‹è·ç¦»å‹ç¼©ä¸”æ–¹ä½å‹ç¼©åä¿¡å·
-subplot(121);imagesc(real(img_rd));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(a)å®éƒ¨');
-subplot(122);imagesc(abs(img_rd));xlabel('è·ç¦»å‘æ—¶é—´ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(b)å¹…åº¦');
-suptitle('21.9åº¦æ–œè§†è§’è·ç¦»å‹ç¼©ä¸”æ–¹ä½å‹ç¼©åçš„ä¿¡å·ï¼ˆæ—¶åŸŸï¼‰');
+figure; % »æÖÆµÍĞ±ÊÓ½ÇÇé¿öÏÂ¾àÀëÑ¹ËõÇÒ·½Î»Ñ¹ËõºóĞÅºÅ
+subplot(121);imagesc(real(img_rd));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');ylabel('·½Î»ÏòÊ±¼ä£¨²ÉÑùµã£©');title('(a)Êµ²¿');
+subplot(122);imagesc(abs(img_rd));xlabel('¾àÀëÏòÊ±¼ä£¨²ÉÑùµã£©');title('(b)·ù¶È');
+suptitle('21.9¶ÈĞ±ÊÓ½Ç¾àÀëÑ¹ËõÇÒ·½Î»Ñ¹ËõºóµÄĞÅºÅ£¨Ê±Óò£©');
 
-%% 4. ç‚¹ç›®æ ‡åˆ†æ
-% è®¡ç®—æ¯ä¸ªç‚¹å‡ºç°ä½ç½®çš„ç´¢å¼•å€¼
+%% 4. µãÄ¿±ê·ÖÎö
+% ¼ÆËãÃ¿¸öµã³öÏÖÎ»ÖÃµÄË÷ÒıÖµ
 delta_r=delta_r * cos(theta_rc);
 ns = round(rs/(delta_r)) + (Nrg/2 + 1);
 ms = round(as/delta_a) + (Naz/2 + 1);
@@ -161,8 +165,8 @@ p = 1;
 target = img_rd(ms(p)-len/2:ms(p)+len/2-1, ns(p)-len/2:ns(p)+len/2-1);
 [image_upsample,signal_r,quality_r,signal_a,quality_a] = f_point_analyse(target,delta_r,delta_a);
 BW_r= abs(Kr*Tr);
-La = 0.886 * 2 * Vs * cos(theta_rc) / BW_dop;   % å¤©çº¿å­”å¾„é•¿åº¦
+La = 0.886 * 2 * Vs * cos(theta_rc) / BW_dop;   % ÌìÏß¿×¾¶³¤¶È
 IRW_r_theory = c/2/BW_r*0.886*1.18;
 IRW_a_theory = La/2*Vg/Vs*1.185;
-disp(['è·ç¦»å‘ç†è®ºåˆ†è¾¨ç‡:',num2str(IRW_r_theory),'m']);
-disp(['æ–¹ä½å‘ç†è®ºåˆ†è¾¨ç‡:',num2str(IRW_a_theory),'m']);
+disp(['¾àÀëÏòÀíÂÛ·Ö±æÂÊ:',num2str(IRW_r_theory),'m']);
+disp(['·½Î»ÏòÀíÂÛ·Ö±æÂÊ:',num2str(IRW_a_theory),'m']);
