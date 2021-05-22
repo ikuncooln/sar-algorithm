@@ -17,11 +17,11 @@ prf = 533.330793;
 file_size = range_size * azimuth_size * 8;
 
 %% 1. read data
-x0 = 5500; y0 =5400;
+x0 = 1; y0 =1;
 % height = 20480; width = 16384;
-height = 2000; width = 2000;
+height = 4096; width = 4096;
 % data_file = 'E:/学校/研一下/SAR信号处理与运动补偿/h2/data_after_moco.dat';
-data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\data_after_moco.dat';
+data_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_before_moco.dat';
 
 disp('读取数据中');
 s0 = read_data( data_file, range_size, x0, y0, height, width);
@@ -119,17 +119,17 @@ theshold1 = values(round(0.02*Nrg*Naz));
 theshold2 = values(round(0.98*Nrg*Naz));
 img_filtered_matlab(img_filtered_matlab < theshold1) = theshold1;
 img_filtered_matlab(img_filtered_matlab > theshold2) = theshold2;
-figure;imagesc(img_filtered_matlab); colormap('gray');
-img_filtered_matlab_uint8 = uint8((img_filtered_matlab-min(img_filtered_matlab(:)))/(max(img_filtered_matlab(:))-min(img_filtered_matlab(:)))*255);
-imwrite(img_filtered_matlab_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_medfilt_4096.jpg');
+figure;imagesc(img_filtered_matlab); colormap('gray');title('中值滤波');
+% img_filtered_matlab_uint8 = uint8((img_filtered_matlab-min(img_filtered_matlab(:)))/(max(img_filtered_matlab(:))-min(img_filtered_matlab(:)))*255);
+% imwrite(img_filtered_matlab_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_medfilt_4096.jpg');
 
 values = sort(img_filtered(:),'ascend');
 theshold1 = values(round(0.02*Nrg*Naz));
 theshold2 = values(round(0.98*Nrg*Naz));
 img_filtered(img_filtered < theshold1) = theshold1;
 img_filtered(img_filtered > theshold2) = theshold2;
-figure;imagesc(img_filtered); colormap('gray');
-img_filtered_uint8 = uint8((img_filtered-min(img_filtered(:)))/(max(img_filtered(:))-min(img_filtered(:)))*255);
-imwrite(img_filtered_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_adaptmedfilt_4096.jpg');
+figure;imagesc(img_filtered); colormap('gray');title('自适应中值滤波');
+% img_filtered_uint8 = uint8((img_filtered-min(img_filtered(:)))/(max(img_filtered(:))-min(img_filtered(:)))*255);
+% imwrite(img_filtered_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第二次大作业\img_rd_adaptmedfilt_4096.jpg');
 
 

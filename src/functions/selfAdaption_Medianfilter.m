@@ -2,7 +2,7 @@ function [ NEWimg ] = selfAdaption_Medianfilter( imgdata )
 %UNTITLED2 此处显示有关此函数的摘要
 %   此处显示详细说明
 [rows,columns]=size(imgdata);
-n=3;%设定窗口尺寸，默认是n*n的窗
+n=5;%设定窗口尺寸，默认是n*n的窗
 nmax=15;%最大尺寸
 flag=0;
 %以下的start1和start2设定，以及min(j+(n-1)/2,columns)是为了能够滤除图像边框上的噪声。
