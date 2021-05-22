@@ -42,7 +42,7 @@ disp('数据读取完成');
 % xlabel('频率MHz');
 % ylabel('幅度');
 % axis tight
-%% 2. convert the prameters to standar vaiables
+%% 2. convert the prameters to standard vaiables
 c = 299792458;
 lambda = wave_length;
 f0 = c/lambda;
