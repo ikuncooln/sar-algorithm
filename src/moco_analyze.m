@@ -118,8 +118,16 @@ phase_error_deg = phase_error * 180/pi;
 % 1.2 距离徙动量沿距离向变化
 
 % 2.1 方位相位在测绘带中心一个合成孔径时间内沿方位向变化
+figure;
+plot(xi,href-zi);
+title('泡面');
 
+figure;
+plot(yi);
 % 2.2 距离徙动量在测绘带中心一个合成孔径时间内沿方位向变化
+%%
+
+
 
 %% 实际数据处理
 

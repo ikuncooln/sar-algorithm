@@ -75,7 +75,7 @@ PRF = Fa;
 f_etac = 2 * Vr * sin(theta_rc) / lambda;
 
 disp('开始成像...');
-s0 = read_data( file4, range_size, x0, y0, height, width);
+s0 = read_data( file3, range_size, x0, y0, height, width);
 disp('数据读取完毕');
 figure;imagesc(real(s0)); colormap('gray');
 
@@ -94,5 +94,8 @@ img(img > theshold2) = theshold2;
 img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
 figure;imagesc(img_uint8); colormap('gray');
 
-figure;
-plot(img(:));
+% figure;
+% plot(img(:));
+
+
+[ ~, MOCO_UNIT ] = read_mocodata( moco_file,azimuth_size );
