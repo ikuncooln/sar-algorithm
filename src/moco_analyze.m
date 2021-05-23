@@ -1,6 +1,8 @@
 % 读取运动补偿数据
-clear; close all;
-file_name = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\mocodata.dat';
+clear; close all;clc;
+% file_name = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\mocodata.dat';
+
+file_name = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\mocodata.dat';
 % basic parameters
 c = 299792458;
 wave_length = 0.03125;
@@ -8,6 +10,7 @@ near_range = 23306.25;
 range_size = 16384;
 range_sample_rate = 548571428.571429;
 azimuth_size = 20480;
+azimuth_angle = 0.04;
 
 % parameters convert
 Nrg = range_size;
@@ -16,6 +19,8 @@ Naz = azimuth_size;
 delta_r = c/2/Fr; % 距离向采样间距
 lambda = wave_length;
 pulse_count = azimuth_size;
+center_R0 = near_range + (range_size/2)*delta_r;
+
 
 [ MOCO_UNIT_HEAD, MOCO_UNIT ] = read_mocodata( file_name, pulse_count );
 % disp(['载机参考prf', num2str(MOCO_UNIT_HEAD.ref_prf)]);
@@ -102,6 +107,14 @@ figure;
 plot(delta_R(round(Naz/down_rate/2), :));
 xlabel('距离向'); ylabel('某一方位位置处运动误差导致的斜距误差（米）');
 title('方位中间位置处的斜距误差沿着距离向的变化（米）');
+
+
+
+%  孔径时间内距离误差
+theta_bw_deg = azimuth_angle*180/pi;
+Ls = center_R0 * azimuth_angle;
+delta_a = MOCO_UNIT_HEAD.ref_vel/PRF;
+Num = Ls/delta_a;
 
 %% 根据载机轨迹分析方位相位误差的空变特性
 % 方位相位误差

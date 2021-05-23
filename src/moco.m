@@ -1,11 +1,11 @@
 close all; clear;
 
 %% basic parameters
-moco_file = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\mocodata.dat';
-file1 = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\data_before_moco.dat';
-file2 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_1th_phase_compensation.dat';
-file3 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_range_resample.dat';
-file4 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_azimuth_resample.dat';
+moco_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\mocodata.dat';
+file1 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_before_moco.dat';
+file2 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_1th_phase_compensation.dat';
+file3 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_range_resample.dat';
+file4 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_azimuth_resample.dat';
 
 azimuth_angle = 0.04;
 wave_length = 0.03125;
