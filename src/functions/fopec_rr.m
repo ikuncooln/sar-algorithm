@@ -71,11 +71,13 @@ for k = 1:iter
     s0 = s0 .* hc;
     
     % 距离重采样
+    s0 = fftshift(s0, 2);
     S0 = fft(s0.').';
-    f = repmat(f0+f_tau, bs, 1); 
+    f = repmat(f_tau, bs, 1); 
     hc = exp(1j * 4 * pi * ... % 要取距离参考中心位置的delta_R
         repmat(delta_R((k-1)*batch_size+(1:bs), Nrg/2), 1, Nrg) .* f / c);
     s1 = ifft((S0 .* hc).').';
+    s1 = ifftshift(s1, 2);
     disp(['一阶相位误差补偿及距离向重采样中：', num2str(k/iter*100), '%']);
     write_data(s1, out_file, 1);
 end

@@ -21,7 +21,7 @@ azimuth_pos_ideal = linspace(azimuth_pos(1), azimuth_pos(end), azimuth_size);
 
 %% 运动补偿
 current_pulse_count = last_pulse_count+1;
-overlap = 1;    % 为了插值的连续性，交叠一行
+overlap = 20;    % 为了插值的连续性，交叠一行
 write_data([], out_file, 0);    % 先清空或建立该文件
 for k = 1:iter
     bs = (last_pulse_count+pulse_count - current_pulse_count)+1;
@@ -43,8 +43,10 @@ for k = 1:iter
 
     assert(y_end-y_start+1>=bs);
     for col = 1:range_size
-        s0(:, col) = interp1(azimuth_pos(y_start:y_end), s0(:, col),...
-         azimuth_pos_ideal(y_start:y_end));
+        tmp = interp1(azimuth_pos(y_start:y_end), s0(:, col),...
+         azimuth_pos_ideal(y_start:y_end), 'linear', 'extrap');
+        assert(sum(isnan(tmp)) == 0);
+        s0(:, col) = tmp;
         if mod(col, 1000) == 0
             disp(['方位向重采样中：', num2str(col/range_size*100/iter + (k-1)*100/iter), '%']);
         end

@@ -1,11 +1,18 @@
 close all; clear;
 
 %% basic parameters
-moco_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\mocodata.dat';
-file1 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_before_moco.dat';
-file2 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_1th_phase_compensation.dat';
-file3 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_range_resample.dat';
-file4 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_azimuth_resample.dat';
+% moco_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\mocodata.dat';
+% file1 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_before_moco.dat';
+% file2 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_1th_phase_compensation.dat';
+% file3 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_range_resample.dat';
+% file4 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_azimuth_resample.dat';
+
+moco_file = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\mocodata.dat';
+file1 = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\data_before_moco.dat';
+file2 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_1th_phase_compensation.dat';
+file3 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_range_resample.dat';
+file4 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_azimuth_resample.dat';
+
 
 azimuth_angle = 0.04;
 wave_length = 0.03125;
@@ -34,12 +41,15 @@ range_resample(moco_file,...
     range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
 
 %% 方位重采样处理
-azimuth_resample( moco_file, file3, file4,...
+azimuth_resample(moco_file, file3, file4,...
     range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
 
 %% 成像检验
 % 转到main.m
 % parameters
+% file_mocoed为老师给的校正后的数据
+file_mocoed = 'E:\学校\研一下\SAR信号处理与运动补偿\h2\data_after_moco.dat';
+data_file = file4;  % 用于成像的文件
 azimuth_angle = 0.04;
 wave_length = 0.03125;
 chirp_rate = 200000000000000.0;
@@ -75,15 +85,15 @@ PRF = Fa;
 f_etac = 2 * Vr * sin(theta_rc) / lambda;
 
 disp('开始成像...');
-s0 = read_data( file3, range_size, x0, y0, height, width);
+s0 = read_data( data_file, range_size, x0, y0, height, width);
 disp('数据读取完毕');
-figure;imagesc(real(s0)); colormap('gray');
+% figure;imagesc(real(s0)); colormap('gray');
 
 
 s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
 img = abs(s);
 % figure;imagesc(img); colormap('gray');
-disp('成像完成');
+disp([data_file, '-成像完成']);
 
 % 2%灰度增强
 values = sort(img(:),'ascend');
@@ -93,9 +103,5 @@ img(img < theshold1) = theshold1;
 img(img > theshold2) = theshold2;
 img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
 figure;imagesc(img_uint8); colormap('gray');
-
-% figure;
-% plot(img(:));
-
-
-[ ~, MOCO_UNIT ] = read_mocodata( moco_file,azimuth_size );
+[~, data_name] = fileparts(data_file);
+title([data_name, '-成像完成']);

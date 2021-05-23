@@ -1,8 +1,8 @@
 % 读取运动补偿数据
 clear; close all;clc;
-% file_name = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\mocodata.dat';
+file_name = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\mocodata.dat';
 
-file_name = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\mocodata.dat';
+% file_name = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\mocodata.dat';
 % basic parameters
 c = 299792458;
 wave_length = 0.03125;
@@ -71,7 +71,7 @@ sin_alpha = sqrt(1-cos_alpha.^2);
 
 delta_R = delta_z .* cos_alpha_mtx;
 clear delta_z cos_alpha_mtx;
-delta_R = delta_R + delta_y .* sin_alpha_mtx;
+delta_R = delta_R - delta_y .* sin_alpha_mtx;
 clear delta_y sin_alpha_mtx
 
 figure;
@@ -115,6 +115,16 @@ theta_bw_deg = azimuth_angle*180/pi;
 Ls = center_R0 * azimuth_angle;
 delta_a = MOCO_UNIT_HEAD.ref_vel/PRF;
 Num = Ls/delta_a;
+Ls_range = linspace(-Ls/2 , Ls/2, 550);
+center_R1 = sqrt((sqrt(center_R0^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
+[Ls_range_grid, center_R1_grid] = meshgrid(Ls_range, center_R1);
+delta_R1 = sqrt(center_R1_grid.^2 + Ls_range_grid.^2) - sqrt(center_R0^2+Ls_range_grid.^2);
+figure;
+mesh(delta_R1);
+colormap('jet');
+xlabel('合成孔径时间方向'); ylabel('方位向'); zlabel('斜距误差(米)')
+title('孔径时间内斜距误差变化');
+
 
 %% 根据载机轨迹分析方位相位误差的空变特性
 % 方位相位误差

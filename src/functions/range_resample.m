@@ -65,11 +65,17 @@ for k = 1:iter
     s0 = read_data(in_file, range_size, 1, current_pulse_count,...
     bs, range_size);
     current_pulse_count = current_pulse_count + bs;
-    S0 = fft(s0.').';
-    f = repmat(f0+f_tau, bs, 1); 
+    s0 = fftshift(s0, 2);
+    S0 = fft(s0.').';   % 避免引入额外线性相位（因为DFT是在[0,T]做的）
+    f = repmat(f_tau, bs, 1); % 注意这里不应该用f0+f_tau，而直接是f0（因为一阶相位
+                                % 补偿已经补偿了-4*pi*f0*R/c中的R'为R了，所以这里不用再补偿
+                                % 补偿前与之有关的相位为：-4*pi*f0*R/c-4*pi*f_tau*R'/c
+                                % 所以只需要乘以-4*pi*f_tau*(R-R')/c进行相位补偿
+                                % 而非-4*pi*(f_tau+f0)*(R-R')/c
     hc = exp(1j * 4 * pi * ... % 要取距离参考中心位置的delta_R
         repmat(delta_R((k-1)*batch_size+(1:bs), Nrg/2), 1, Nrg) .* f / c);
     s1 = ifft((S0 .* hc).').';
+    s1 = ifftshift(s1, 2);
     disp(['距离向重采样中：', num2str(k/iter*100), '%']);
     write_data(s1, out_file, 1);
 end
