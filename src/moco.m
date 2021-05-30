@@ -27,7 +27,7 @@ prf = 533.330793;
 
 %% 选择此次处理的数据量大小
 last_pulse_count = 0;
-pulse_count = 2048;
+pulse_count = 4096;
 MAX_MEM_GB = 1; % 1次仅处理不超过1GB数据
 
 %% 一阶相位误差补偿
@@ -49,7 +49,7 @@ azimuth_resample(moco_file, file3, file4,...
 % parameters
 % file_mocoed为老师给的校正后的数据
 file_mocoed = 'E:\学校\研一下\SAR信号处理与运动补偿\h2\data_after_moco.dat';
-data_file = file4;  % 用于成像的文件
+data_file = file_mocoed;  % 用于成像的文件
 azimuth_angle = 0.04;
 wave_length = 0.03125;
 chirp_rate = 200000000000000.0;
@@ -63,7 +63,7 @@ prf = 533.330793;
 % 成像位置选择
 x0 = 1; y0 =1;
 % height = 20480; width = 16384;
-height = 2048; width = 2048;
+height = 4096; width = 4096;
 
 % parameters convert
 c = 299792458;
@@ -95,8 +95,8 @@ delta_R = range_space_variant( moco_file,...
     near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
     width, x0-1, height, y0-1);
 
-s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0, delta_R);
-
+% s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0, delta_R);
+s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
 img = abs(s);
 % figure;imagesc(img); colormap('gray');
 disp([data_file, '-成像完成']);
@@ -111,3 +111,8 @@ img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
 figure;imagesc(img_uint8); colormap('gray');
 [~, data_name] = fileparts(data_file);
 title([data_name, '-成像完成']);
+
+
+% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_moco_4096.bmp');
+% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_before_moco_4096.bmp');
+imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_ref_4096.bmp');

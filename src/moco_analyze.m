@@ -111,6 +111,7 @@ title('方位中间位置处的斜距误差沿着距离向的变化（米）');
 
 
 %  孔径时间内距离误差
+theta_bw = azimuth_angle;
 theta_bw_deg = azimuth_angle*180/pi;
 Ls = center_R0 * azimuth_angle;
 delta_a = MOCO_UNIT_HEAD.ref_vel/PRF;
@@ -125,6 +126,28 @@ colormap('jet');
 xlabel('合成孔径时间方向'); ylabel('方位向'); zlabel('斜距误差(米)')
 title('孔径时间内斜距误差变化');
 
+% 距离向中心一个合成孔径时间内方位相位误差变化
+theta = linspace(-theta_bw/2, theta_bw/2, 550);
+Ls_range = center_R0 * tan(theta);
+center_R1 = sqrt((sqrt(center_R0^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
+[Ls_range_grid, center_R1_grid] = meshgrid(Ls_range, center_R1);
+delta_R1 = sqrt(center_R1_grid.^2 + Ls_range_grid.^2) - sqrt(center_R0^2+Ls_range_grid.^2);
+phase_error1 = 4*pi*(delta_R1(end/2, :) - delta_R1(end/2, end/2))/lambda*180/pi;
+
+% 距离向最远端一个合成孔径时间内方位相位误差变化
+max_R0 = center_R0 + Nrg/2*delta_r;
+Ls = max_R0  * azimuth_angle;
+delta_a = MOCO_UNIT_HEAD.ref_vel/PRF;
+Num = Ls/delta_a;
+Ls_range = max_R0 * tan(theta);
+center_R1 = sqrt((sqrt(max_R0 ^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
+[Ls_range_grid, center_R1_grid] = meshgrid(Ls_range, center_R1);
+delta_R1 = sqrt(center_R1_grid.^2 + Ls_range_grid.^2) - sqrt(max_R0 ^2+Ls_range_grid.^2);
+phase_error2 = 4*pi*(delta_R1(end/2, :) - delta_R1(end/2, end/2))/lambda*180/pi;
+
+figure;
+plot([phase_error1.', phase_error2.']);
+title('中心方位位置处斜距误差随孔径时间变化曲线');
 
 %% 根据载机轨迹分析方位相位误差的空变特性
 % 方位相位误差
@@ -141,12 +164,12 @@ phase_error_deg = phase_error * 180/pi;
 % 1.2 距离徙动量沿距离向变化
 
 % 2.1 方位相位在测绘带中心一个合成孔径时间内沿方位向变化
-figure;
-plot(xi,href-zi);
-title('泡面');
+% figure;
+% plot(xi,href-zi);
+% title('泡面');
 
-figure;
-plot(yi);
+% figure;
+% plot(yi);
 % 2.2 距离徙动量在测绘带中心一个合成孔径时间内沿方位向变化
 %%
 
