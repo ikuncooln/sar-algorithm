@@ -44,7 +44,7 @@ range_resample(moco_file,...
 azimuth_resample(moco_file, file3, file4,...
     range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
 
-%% 成像检验
+%% 成像检验（在成像过程中进行二阶运动补偿和空变相位补偿）
 % 转到main.m
 % parameters
 % file_mocoed为老师给的校正后的数据
@@ -89,8 +89,14 @@ s0 = read_data( data_file, range_size, x0, y0, height, width);
 disp('数据读取完毕');
 % figure;imagesc(real(s0)); colormap('gray');
 
+% 额外计算信息以进行二阶运动补偿
+ref_range = near_range + (Nrg/2)*delta_r;
+delta_R = range_space_variant( moco_file,...
+    near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
+    width, x0-1, height, y0-1);
 
-s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
+s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0, delta_R);
+
 img = abs(s);
 % figure;imagesc(img); colormap('gray');
 disp([data_file, '-成像完成']);
