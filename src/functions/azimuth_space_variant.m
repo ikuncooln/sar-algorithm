@@ -36,8 +36,10 @@ idx = last_pulse_count+1:pulse_count;
 yi = yi(idx); zi = zi(idx);
 yi_ideal = yi_ideal(idx);
 R0 = near_range + (0:Nrg-1)*delta_r;
-R1 = sqrt((sqrt(R0(:).^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
-R1_grid = repmat(reshape(R1, Naz, 1), 1, Nrg);
+% R1 = sqrt((sqrt(R0(:).^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
+% R1_grid = repmat(reshape(R1, Naz, 1), 1, Nrg);
+R1_grid = sqrt((sqrt(repmat(R0.^2, Naz, 1) - href^2)...
+    - repmat((yi-yi_ideal), 1, Nrg)).^2 + zi.^2);
 
 f_eta = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
 f_eta = (round((f_etac-f_eta)/Fa)*Fa+f_eta); 
