@@ -1,8 +1,6 @@
-% ¶ÁÈ¡ÔË¶¯²¹³¥Êı¾İ
 clear; close all;clc;
-file_name = 'E:\Ñ§Ğ£\ÑĞÒ»ÏÂ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\h3\ÔË¶¯²¹³¥Êı¾İ\mocodata.dat';
-
-% file_name = 'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\mocodata.dat';
+%% è¯»å–è¿åŠ¨è¡¥å¿æ•°æ®
+file_name =  '../data/mocodata.dat';
 % basic parameters
 c = 299792458;
 wave_length = 0.03125;
@@ -11,45 +9,41 @@ range_size = 16384;
 range_sample_rate = 548571428.571429;
 azimuth_size = 20480;
 azimuth_angle = 0.04;
-velocity = 154.195864;
-Vr = velocity;
 
 % parameters convert
 Nrg = range_size;
 Fr = range_sample_rate;
 Naz = azimuth_size;
-delta_r = c/2/Fr; % ¾àÀëÏò²ÉÑù¼ä¾à
+delta_r = c/2/Fr; % è·ç¦»å‘é‡‡æ ·é—´è·
 lambda = wave_length;
 pulse_count = azimuth_size;
 center_R0 = near_range + (range_size/2)*delta_r;
 
-
 [ MOCO_UNIT_HEAD, MOCO_UNIT ] = read_mocodata( file_name, pulse_count );
-% disp(['ÔØ»ú²Î¿¼prf', num2str(MOCO_UNIT_HEAD.ref_prf)]);
+% disp(['è½½æœºå‚è€ƒprf', num2str(MOCO_UNIT_HEAD.ref_prf)]);
 PRF = MOCO_UNIT_HEAD.ref_prf;
 azimuth_pos = MOCO_UNIT.forward;
 
 %% analyze
-% ÔØ»ú·ÉĞĞ¿Õ¼ä¹ì¼£
+% è½½æœºé£è¡Œç©ºé—´è½¨è¿¹
 M = length(MOCO_UNIT.forward);
 xi = reshape(MOCO_UNIT.forward, [], 1);
-yi = reshape(MOCO_UNIT.cross, [], 1);
+yi = -reshape(MOCO_UNIT.cross, [], 1);
 zi = reshape(MOCO_UNIT.height, [], 1);
 
-%% ÔË²¹Êı¾İÔ¤´¦Àí
+%% è¿è¡¥æ•°æ®é¢„å¤„ç†
 % figure;
 % plot(diff(MOCO_UNIT.time), 'o');
-% Ó¦¸ÃÒÑ¾­×öÁËÔË²¹Êı¾İ²åÖµÁË
+% åº”è¯¥å·²ç»åšäº†è¿è¡¥æ•°æ®æ’å€¼äº†
 
-% ÄâºÏ³öÀíÏëº½¼£
+% æ‹Ÿåˆå‡ºç†æƒ³èˆªè¿¹
 N = length(xi);
 p = polyfit(xi, yi, 1);
 yi_ideal = polyval(p, xi);
-href = mean(zi(:)); % ÀíÏë²Î¿¼¸ß¶È
+href = mean(zi(:)); % ç†æƒ³å‚è€ƒé«˜åº¦
 zi_ideal = repmat(href, N, 1);
 
-
-% ³éÈ¡Ñùµã·ÖÎö
+% æŠ½å–æ ·ç‚¹åˆ†æ
 down_rate = 50;
 idx = 1:down_rate:M;
 xi = xi(idx); yi = yi(idx); zi = zi(idx);
@@ -61,9 +55,11 @@ xlabel('forward'); ylabel('cross'); zlabel('height');
 grid on;
 hold on;
 plot3(xi, yi_ideal, zi_ideal);
+hold off;
+legend('çœŸå®èˆªè¿¹','å‚è€ƒèˆªè¿¹');
 
-%% ¸ù¾İÔØ»ú¹ì¼£·ÖÎöĞ±¾àÎó²î¿Õ±äÌØĞÔ
-% ¾àÀëÆ«²î
+%% æ ¹æ®è½½æœºè½¨è¿¹åˆ†ææ–œè·è¯¯å·®ç©ºå˜ç‰¹æ€§
+% è·ç¦»åå·®
 R0 = near_range + (0:Nrg-1)*delta_r;
 R0 = R0(1:down_rate:Nrg);
 cos_alpha = href ./ R0;
@@ -79,41 +75,43 @@ clear delta_y sin_alpha_mtx
 figure;
 mesh(delta_R);
 colormap('jet');
-xlabel('¾àÀëÏò'); ylabel('·½Î»Ïò'); zlabel('Ğ±¾àÎó²î(Ã×)')
-title('ÔË¶¯Îó²îÒıÆğµÄ¾àÀëÏòºÍ·½Î»Ïò¸÷µãµÄĞ±¾àÎó²î');
-
+xlabel('è·ç¦»å‘'); ylabel('æ–¹ä½å‘'); zlabel('æ–œè·è¯¯å·®(ç±³)')
+title('è¿åŠ¨è¯¯å·®å¼•èµ·çš„è·ç¦»å‘å’Œæ–¹ä½å‘å„ç‚¹çš„æ–œè·è¯¯å·®');
+%%
 max_R_error = max(delta_R, [], 2);
 min_R_error = min(delta_R, [], 2);
 figure;
 plot([max_R_error,min_R_error]);
-legend('Ğ±¾àÎó²î×î´óÖµ', 'Ğ±¾àÎó²î×îĞ¡Öµ');
-xlabel('·½Î»ÏòÎ»ÖÃ'); ylabel('ÔË¶¯Îó²îµ¼ÖÂµÄ×î´óºÍ×îĞ¡¾àÀëÎó²î£¨Ã×£©');
+legend('æ–œè·è¯¯å·®æœ€å¤§å€¼', 'æ–œè·è¯¯å·®æœ€å°å€¼');grid on;
+xlabel('æ–¹ä½å‘ä½ç½®'); ylabel('è·ç¦»è¯¯å·®ï¼ˆç±³ï¼‰');
 
 figure;
-plot(min_R_error-max_R_error);
-xlabel('·½Î»ÏòÎ»ÖÃ'); ylabel('ÔË¶¯Îó²îµ¼ÖÂµÄ×î´óºÍ×îĞ¡¾àÀëÎó²îµÄ²î£¨Ã×£©');
-
+plot(min_R_error-max_R_error);grid on;
+xlabel('æ–¹ä½å‘ä½ç½®'); ylabel('è¿åŠ¨è¯¯å·®å¯¼è‡´çš„æœ€å¤§å’Œæœ€å°è·ç¦»è¯¯å·®çš„å·®ï¼ˆç±³ï¼‰');
+%%
 figure;
 plot(diff(azimuth_pos));
-xlabel('·½Î»²ÉÑùµã'); ylabel('·½Î»×ø±ê²î·Ö£ºÃ×');
-title('ÔË¶¯Îó²îÒıÆğµÄ·½Î»·Ç¾ùÔÈ²ÉÑù');
+hold on;
+plot(diff(MOCO_UNIT.ref_forward));
+hold off;
+grid on;
+legend('å®é™…å·®åˆ†','ç†æƒ³å·®åˆ†');
+xlabel('æ–¹ä½é‡‡æ ·ç‚¹'); ylabel('æ–¹ä½åæ ‡å·®åˆ†ï¼šç±³');
+% title('è¿åŠ¨è¯¯å·®å¼•èµ·çš„æ–¹ä½éå‡åŒ€é‡‡æ ·');
 
-% ÀíÏë·½Î»²ÉÑùÎ»ÖÃ
+% ç†æƒ³æ–¹ä½é‡‡æ ·ä½ç½®
 azimuth_pos_ideal = linspace(azimuth_pos(1), azimuth_pos(end), pulse_count);
 figure;
-plot(azimuth_pos-azimuth_pos_ideal);
-xlabel('·½Î»²ÉÑùµã'); ylabel('Êµ¼Ê·½Î»²ÉÑùÎ»ÖÃÆ«ÀëÀíÏëÎ»ÖÃµÄÆ«ÒÆÁ¿£¨Ã×£©')
-title('ÔË¶¯Îó²îÒıÆğµÄÊµ¼Ê·½Î»²ÉÑùÎ»ÖÃÆ«ÀëÀíÏëÎ»ÖÃµÄÆ«ÒÆÁ¿');
-
+plot(azimuth_pos-azimuth_pos_ideal);grid on;
+xlabel('æ–¹ä½é‡‡æ ·ç‚¹'); ylabel('åç§»é‡ï¼ˆç±³ï¼‰')
+% title('è¿åŠ¨è¯¯å·®å¼•èµ·çš„å®é™…æ–¹ä½é‡‡æ ·ä½ç½®åç¦»ç†æƒ³ä½ç½®çš„åç§»é‡');
+%%
 figure;
-plot(delta_R(round(Naz/down_rate/2), :));
-xlabel('¾àÀëÏò'); ylabel('Ä³Ò»·½Î»Î»ÖÃ´¦ÔË¶¯Îó²îµ¼ÖÂµÄĞ±¾àÎó²î£¨Ã×£©');
-title('·½Î»ÖĞ¼äÎ»ÖÃ´¦µÄĞ±¾àÎó²îÑØ×Å¾àÀëÏòµÄ±ä»¯£¨Ã×£©');
+plot(delta_R(round(Naz/down_rate/2), :));grid on;
+xlabel('è·ç¦»å‘'); ylabel('æ–œè·è¯¯å·®ï¼ˆç±³ï¼‰');
+title('æ–¹ä½ä¸­é—´ä½ç½®å¤„çš„æ–œè·è¯¯å·®æ²¿ç€è·ç¦»å‘çš„å˜åŒ–ï¼ˆç±³ï¼‰');
 
-
-
-%  ¿×¾¶Ê±¼äÄÚ¾àÀëÎó²î
-theta_bw = azimuth_angle;
+%% å­”å¾„æ—¶é—´å†…æ–œè·è¯¯å·®
 theta_bw_deg = azimuth_angle*180/pi;
 Ls = center_R0 * azimuth_angle;
 delta_a = MOCO_UNIT_HEAD.ref_vel/PRF;
@@ -123,12 +121,20 @@ center_R1 = sqrt((sqrt(center_R0^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
 [Ls_range_grid, center_R1_grid] = meshgrid(Ls_range, center_R1);
 delta_R1 = sqrt(center_R1_grid.^2 + Ls_range_grid.^2) - sqrt(center_R0^2+Ls_range_grid.^2);
 figure;
+
 mesh(delta_R1);
 colormap('jet');
-xlabel('ºÏ³É¿×¾¶Ê±¼ä·½Ïò'); ylabel('·½Î»Ïò'); zlabel('Ğ±¾àÎó²î(Ã×)')
-title('¿×¾¶Ê±¼äÄÚĞ±¾àÎó²î±ä»¯');
+xlabel('åˆæˆå­”å¾„æ–¹å‘'); ylabel('æ–¹ä½å‘'); zlabel('æ–œè·è¯¯å·®(ç±³)')
+% title('å­”å¾„æ—¶é—´å†…æ–œè·è¯¯å·®å˜åŒ–');
+% figure;
+% plot([delta_R1(round(Naz/down_rate/2), :).',delta_R1(round(Naz/down_rate), :).']);grid on;axis tight;
+% xlabel('åˆæˆå­”å¾„æ–¹å‘'); ylabel('æ–œè·è¯¯å·®ï¼ˆç±³ï¼‰');
+% title('æ–¹ä½ä¸­é—´ä½ç½®å¤„çš„æ–œè·è¯¯å·®æ²¿ç€åˆæˆå­”å¾„æ–¹å‘çš„å˜åŒ–ï¼ˆç±³ï¼‰');
+%%
+%  å­”å¾„æ—¶é—´å†…è·ç¦»è¯¯å·®
+theta_bw = azimuth_angle;
 
-% ¾àÀëÏòÖĞĞÄÒ»¸öºÏ³É¿×¾¶Ê±¼äÄÚ·½Î»ÏàÎ»Îó²î±ä»¯
+% è·ç¦»å‘ä¸­å¿ƒä¸€ä¸ªåˆæˆå­”å¾„æ—¶é—´å†…æ–¹ä½ç›¸ä½è¯¯å·®å˜åŒ–
 theta = linspace(-theta_bw/2, theta_bw/2, 550);
 Ls_range = center_R0 * tan(theta);
 center_R1 = sqrt((sqrt(center_R0^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
@@ -136,7 +142,7 @@ center_R1 = sqrt((sqrt(center_R0^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
 delta_R1 = sqrt(center_R1_grid.^2 + Ls_range_grid.^2) - sqrt(center_R0^2+Ls_range_grid.^2);
 phase_error1 = 4*pi*(delta_R1(end/2, :) - delta_R1(end/2, end/2))/lambda*180/pi;
 
-% ¾àÀëÏò×îÔ¶¶ËÒ»¸öºÏ³É¿×¾¶Ê±¼äÄÚ·½Î»ÏàÎ»Îó²î±ä»¯
+% è·ç¦»å‘æœ€è¿œç«¯ä¸€ä¸ªåˆæˆå­”å¾„æ—¶é—´å†…æ–¹ä½ç›¸ä½è¯¯å·®å˜åŒ–
 max_R0 = center_R0 + Nrg/2*delta_r;
 Ls = max_R0  * azimuth_angle;
 delta_a = MOCO_UNIT_HEAD.ref_vel/PRF;
@@ -148,50 +154,18 @@ delta_R1 = sqrt(center_R1_grid.^2 + Ls_range_grid.^2) - sqrt(max_R0 ^2+Ls_range_
 phase_error2 = 4*pi*(delta_R1(end/2, :) - delta_R1(end/2, end/2))/lambda*180/pi;
 
 figure;
-plot([phase_error1.', phase_error2.']);
-title('ÖĞĞÄ·½Î»Î»ÖÃ´¦Ğ±¾àÎó²îËæ¿×¾¶Ê±¼ä±ä»¯ÇúÏß');
+plot(theta*180/pi,[phase_error1.', phase_error2.']);grid on;axis tight;
+legend('ä¸­é—´è·ç¦»','æœ€è¿œè·ç¦»');
+xlabel('ç…§å°„è§’åº¦'); ylabel('ç©ºå˜ç›¸ä½è¯¯å·®ï¼ˆÂ°ï¼‰');
+title('ç©ºå˜ç›¸ä½è¯¯å·®éšç…§å°„è§’åº¦å˜åŒ–');
 
-%% ¸ù¾İÔØ»ú¹ì¼£·ÖÎö·½Î»ÏàÎ»Îó²îµÄ¿Õ±äÌØĞÔ
-% ·½Î»ÏàÎ»Îó²î
+%% æ ¹æ®è½½æœºè½¨è¿¹åˆ†ææ–¹ä½ç›¸ä½è¯¯å·®çš„ç©ºå˜ç‰¹æ€§
+% æ–¹ä½ç›¸ä½è¯¯å·®
 phase_error = 4*pi*delta_R / lambda;
 phase_error_deg = phase_error * 180/pi;
 
-%% ×÷ÒµÌâÒªÇó
-
-% 1.1 ·½Î»ÏàÎ»ÑØ¾àÀëÏò±ä»¯
+%% æ–¹ä½ç›¸ä½æ²¿è·ç¦»å‘å˜åŒ–
 % figure;
 % plot(phase_error(round(Naz/down_rate/2), :));
-% xlabel('¾àÀëÏò'); ylabel('·½Î»ÏàÎ»Îó²î');
-
-% 1.2 ¾àÀëáã¶¯Á¿ÑØ¾àÀëÏò±ä»¯
-
-% 2.1 ·½Î»ÏàÎ»ÔÚ²â»æ´øÖĞĞÄÒ»¸öºÏ³É¿×¾¶Ê±¼äÄÚÑØ·½Î»Ïò±ä»¯
-% figure;
-% plot(xi,href-zi);
-% title('ÅİÃæ');
-
-% figure;
-% plot(yi);
-% 2.2 ¾àÀëáã¶¯Á¿ÔÚ²â»æ´øÖĞĞÄÒ»¸öºÏ³É¿×¾¶Ê±¼äÄÚÑØ·½Î»Ïò±ä»¯
-%%
-
-
-
-%% Êµ¼ÊÊı¾İ´¦Àí
-
-
-
-
-%% ¿Õ±äÏàÎ»²¹³¥
-
-
-%% ×îÓÅ×Ó¿×¾¶¸öÊı·ÖÎö
-Fa = PRF;
-TBP = 100;
-Ta = min(Ls) / Vr;
-Ka = 2*Vr^2/lambda/near_range;
-subaperture_num = Fa/(sqrt((TBP / Ka))*Ka)
-
-
-
+% xlabel('è·ç¦»å‘'); ylabel('æ–¹ä½ç›¸ä½è¯¯å·®');
 
