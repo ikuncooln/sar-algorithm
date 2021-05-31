@@ -49,7 +49,7 @@ azimuth_resample(moco_file, file3, file4,...
 % parameters
 % file_mocoed为老师给的校正后的数据
 file_mocoed = 'E:\学校\研一下\SAR信号处理与运动补偿\h2\data_after_moco.dat';
-data_file = file_mocoed;  % 用于成像的文件
+data_file = file4;  % 用于成像的文件
 azimuth_angle = 0.04;
 wave_length = 0.03125;
 chirp_rate = 200000000000000.0;
@@ -89,14 +89,17 @@ s0 = read_data( data_file, range_size, x0, y0, height, width);
 disp('数据读取完毕');
 % figure;imagesc(real(s0)); colormap('gray');
 
-% 额外计算信息以进行二阶运动补偿
+% 一阶相位补偿时使用的参考距离
 ref_range = near_range + (Nrg/2)*delta_r;
-delta_R = range_space_variant( moco_file,...
-    near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
-    width, x0-1, height, y0-1);
+subaperture_num = 32;    % 子孔径个数
+% delta_R = range_space_variant( moco_file,...
+%     near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
+%     width, x0-1, height, y0-1);
+s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0,...
+    moco_file, ref_range, subaperture_num, range_size, azimuth_size,...
+    x0-1, y0-1);
+% s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
 
-% s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0, delta_R);
-s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
 img = abs(s);
 % figure;imagesc(img); colormap('gray');
 disp([data_file, '-成像完成']);
@@ -115,4 +118,6 @@ title([data_name, '-成像完成']);
 
 % imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_moco_4096.bmp');
 % imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_before_moco_4096.bmp');
-imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_ref_4096.bmp');
+% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_ref_4096.bmp');
+
+imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\trash.bmp');

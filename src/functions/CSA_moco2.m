@@ -1,26 +1,20 @@
-function img_cs = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,flag,...
-    moco_file, ref_range, subaperture_num, range_size, azimuth_size, range_start, last_pulse_count)
-%   Chirp Scaling算法，带有二阶运动补偿（距离空变相位）和方位子孔径处理（方位空变相位）
-%   s0 输入信号数据（二维复数组）
-%   theta_bw 天线方位向波束宽度(rad)
-%   lambda 波长(m)
-%   Kr 距离向调频率(Hz/s)
-%   Tr 发射脉冲宽度(s)
-%   Fr 距离向采样率(Hz)
-%   theta_rc 斜视角(rad)
-%   Nrg 距离向采样点数
-%   Naz 方位向采样点数
-%   near_range 第一个采样点距离(m)
-%   Vr 载机速度(m/s)
-%   PRF 脉冲重复频率(Hz)
-%   flag 为1/0表示画/不画出中间步骤的图
-%   moco_file 运动补偿元数据文件名（即平台轨迹信息）
-%   ref_range 一阶相位运动补偿时选择的参考距离
-%   subaperture_num 方位向空变补偿时子孔径数量
-%   range_size 每个回波信号总的采样点数
-%   azimuth_size 用于理想轨迹拟合的总的回波个数
-%   range_start 起始距离向采样点数
-%   last_pulse_count 上次已经处理过的脉冲个数（用于追加式处理）
+function img_cs = CSA_moco2(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,flag,...
+    delta_R)
+%   Chirp Scaling算法，带有二阶运动补偿（距离空变相位）和方位子孔径处理（方位相位空变）
+%   s0是输入信号数据（二维复数组）
+%   theta_bw是天线方位向波束宽度(rad)
+%   lambda是波长(m)
+%   Kr是距离向调频率(Hz/s)
+%   Tr是发射脉冲宽度(s)
+%   Fr是距离向采样率(Hz)
+%   theta_rc是斜视角(rad)
+%   Nrg是距离向采样点数
+%   Naz是方位向采样点数
+%   near_range是第一个采样点距离(m)
+%   Vr是载机速度(m/s)
+%   PRF是脉冲重复频率(Hz)
+%   flag为1/0表示画/不画出中间步骤的图
+%   delta_R 是一个矩阵，每一行代表1到Nrg这些距离点相对于参考点的距离误差
 %% 其他参数
 c=299792458;
 % 距离向
@@ -86,24 +80,14 @@ S3 = S2.*H_range_bulk;
 clear S2 H_range_bulk
 S3 = S3.*repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);           % 滤波   
 clear window_r;
-
 %% 二维时域 距离空变相位补偿
 s4 = ifft2(S3);
 clear S3;
-% delta_R 一个矩阵，每一行代表1到Nrg这些距离点相对于参考点的距离误差
-delta_R = range_space_variant( moco_file,...
-    near_range, ref_range, Fr, range_size, azimuth_size,... 
-    Nrg, range_start, Naz, last_pulse_count);
 s4 = s4 .* exp(1j*4*pi*delta_R/lambda);
-clear delta_R;
 
 %% 距离多普勒域 方位处理
 S4 = fft(s4);
 clear s4;
-S4 = azimuth_space_variant( moco_file, S4, lambda, f_etac, Vr,...
-    subaperture_num, near_range, Fr, PRF, azimuth_size, last_pulse_count);
-%%
-%下面需要距离多普勒域的S4
 if(flag == 1)
     subplot(223);
     imagesc(abs(S4));
