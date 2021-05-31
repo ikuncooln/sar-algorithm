@@ -1,17 +1,17 @@
 close all; clear;
 
 %% basic parameters
-% moco_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\mocodata.dat';
-% file1 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_before_moco.dat';
-% file2 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_1th_phase_compensation.dat';
-% file3 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_range_resample.dat';
-% file4 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_azimuth_resample.dat';
+moco_file = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\mocodata.dat';
+file1 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_before_moco.dat';
+file2 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_1th_phase_compensation.dat';
+file3 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_range_resample.dat';
+file4 = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_azimuth_resample.dat';
 
-moco_file = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\mocodata.dat';
-file1 = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\data_before_moco.dat';
-file2 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_1th_phase_compensation.dat';
-file3 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_range_resample.dat';
-file4 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_azimuth_resample.dat';
+% moco_file = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\mocodata.dat';
+% file1 = 'E:\学校\研一下\SAR信号处理与运动补偿\h3\运动补偿数据\data_before_moco.dat';
+% file2 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_1th_phase_compensation.dat';
+% file3 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_range_resample.dat';
+% file4 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_azimuth_resample.dat';
 
 
 azimuth_angle = 0.04;
@@ -27,7 +27,7 @@ prf = 533.330793;
 
 %% 选择此次处理的数据量大小
 last_pulse_count = 0;
-pulse_count = 4096;
+pulse_count = 20480;
 MAX_MEM_GB = 1; % 1次仅处理不超过1GB数据
 
 %% 一阶相位误差补偿
@@ -48,7 +48,7 @@ azimuth_resample(moco_file, file3, file4,...
 % 转到main.m
 % parameters
 % file_mocoed为老师给的校正后的数据
-file_mocoed = 'E:\学校\研一下\SAR信号处理与运动补偿\h2\data_after_moco.dat';
+file_mocoed = 'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\data_after_moco.dat';
 data_file = file4;  % 用于成像的文件
 azimuth_angle = 0.04;
 wave_length = 0.03125;
@@ -62,8 +62,8 @@ velocity = 154.195864;
 prf = 533.330793;
 % 成像位置选择
 x0 = 1; y0 =1;
-% height = 20480; width = 16384;
-height = 4096; width = 4096;
+height = 20480; width = 16384;
+% height = 4096; width = 4096;
 
 % parameters convert
 c = 299792458;
@@ -91,13 +91,11 @@ disp('数据读取完毕');
 
 % 一阶相位补偿时使用的参考距离
 ref_range = near_range + (Nrg/2)*delta_r;
-subaperture_num = 32;    % 子孔径个数
+subaperture_num = 4;    % 子孔径个数
 % delta_R = range_space_variant( moco_file,...
 %     near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
 %     width, x0-1, height, y0-1);
-s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0,...
-    moco_file, ref_range, subaperture_num, range_size, azimuth_size,...
-    x0-1, y0-1);
+s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0,moco_file, ref_range, subaperture_num, range_size, azimuth_size,x0-1, y0-1);
 % s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
 
 img = abs(s);
@@ -120,4 +118,4 @@ title([data_name, '-成像完成']);
 % imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_before_moco_4096.bmp');
 % imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_ref_4096.bmp');
 
-imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\trash.bmp');
+imwrite(img_uint8,'D:\研一下课程资料\SAR信号处理与运动补偿\第三次大作业\img_space_variant_full_subAperture=4.bmp');
