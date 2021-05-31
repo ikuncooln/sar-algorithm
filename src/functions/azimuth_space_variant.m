@@ -39,7 +39,7 @@ R0 = near_range + (0:Nrg-1)*delta_r;
 % R1 = sqrt((sqrt(R0(:).^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
 % R1_grid = repmat(reshape(R1, Naz, 1), 1, Nrg);
 R1_grid = sqrt((sqrt(repmat(R0.^2, Naz, 1) - href^2)...
-    - repmat((yi-yi_ideal), 1, Nrg)).^2 + zi.^2);
+    - repmat((yi-yi_ideal), 1, Nrg)).^2 + repmat(zi, 1, Nrg).^2);
 
 f_eta = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
 f_eta = (round((f_etac-f_eta)/Fa)*Fa+f_eta); 
@@ -47,10 +47,11 @@ sub_width = ceil(Naz / subaperture_num);    % 每个子孔径对应的频域宽度
 for i = 1:subaperture_num
     id_start = (i-1)*sub_width+1;
     id_end = min(Naz, i*sub_width);
-    SUB = S(id_start:id_end, :);               % 子孔径对应频域信号
+    SUB = zeros(Naz, Nrg);
+    SUB(id_start:id_end, :) = S(id_start:id_end, :);               % 子孔径对应频域信号
     sub_fc = f_eta(round((id_start+id_end)/2)); % 子孔径对应中心频率
     sub_theta = asin(sub_fc*lambda/2/Vr);     % 该子孔径在时域对应斜视角
-    sub = ifft(SUB, Naz, 1);        %  子孔径对应时域信号
+    sub = ifft(SUB);        %  子孔径对应时域信号
     R0 = near_range + (0:Nrg-1)*delta_r;
     sub_L = R0 * tan(sub_theta);    % 该子孔径在时域所对应方位位置和零多普勒面的距离
     sub_L_grid = repmat(sub_L, Naz, 1);
