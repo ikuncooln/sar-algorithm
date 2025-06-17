@@ -46,7 +46,7 @@ clear s_rc
 % figure; % 绘制距离多普勒域里的距离压缩后的结果
 % subplot(121);imagesc(real(Srd));xlabel('距离向时间（采样点）');ylabel('方位向频率（采样点）');title('(a)实部');set(gca, 'YDir', 'normal');
 % subplot(122);imagesc(abs(Srd));xlabel('距离向时间（采样点）');title('(b)幅度');set(gca, 'YDir', 'normal');
-% suptitle('3.5度斜视角距离压缩后信号（距离多普勒域）');
+% sgtitle('3.5度斜视角距离压缩后信号（距离多普勒域）');
 
 %% 5. 距离徙动校正
 f_eta = (ifftshift((-Naz/2 : Naz/2-1) * Fa / Naz)).';
@@ -92,7 +92,7 @@ clear  RCM
 % figure; % 绘制距离多普勒域里的距离压徙动校正后的结果
 % subplot(121);imagesc(real(Srcmc));xlabel('距离向时间（采样点）');ylabel('方位向频率（采样点）');title('(a)实部');set(gca, 'YDir', 'normal');
 % subplot(122);imagesc(abs(Srcmc));xlabel('距离向时间（采样点）');title('(b)幅度');set(gca, 'YDir', 'normal');
-% suptitle('3.5度斜视角距离徙动校正后信号（距离多普勒域）');
+% sgtitle('3.5度斜视角距离徙动校正后信号（距离多普勒域）');
 
 %% 6. 方位压缩
 % Srcmc=Srd;
@@ -117,7 +117,7 @@ img_rd = ifft(Srd_ac);
 % figure; % 绘制低斜视角情况下距离压缩且方位压缩后信号
 % subplot(121);imagesc(real(s_ac));xlabel('距离向时间（采样点）');ylabel('方位向时间（采样点）');title('(a)实部');
 % subplot(122);imagesc(x, y, abs(s_ac));xlabel('距离向时间（采样点）');title('(b)幅度');set(gca, 'YDir', 'normal');
-% suptitle('3.5度斜视角距离压缩且方位压缩后的信号（时域）');
+% sgtitle('3.5度斜视角距离压缩且方位压缩后的信号（时域）');
 
 
 end

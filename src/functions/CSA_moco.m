@@ -1,133 +1,133 @@
-function img_cs = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,flag,...
-    moco_file, ref_range, subaperture_num, range_size, azimuth_size, range_start, last_pulse_count)
-%   Chirp ScalingËã·¨£¬´øÓĞ¶ş½×ÔË¶¯²¹³¥£¨¾àÀë¿Õ±äÏàÎ»£©ºÍ·½Î»×Ó¿×¾¶´¦Àí£¨·½Î»¿Õ±äÏàÎ»£©
-%   s0 ÊäÈëĞÅºÅÊı¾İ£¨¶şÎ¬¸´Êı×é£©
-%   theta_bw ÌìÏß·½Î»Ïò²¨Êø¿í¶È(rad)
-%   lambda ²¨³¤(m)
-%   Kr ¾àÀëÏòµ÷ÆµÂÊ(Hz/s)
-%   Tr ·¢ÉäÂö³å¿í¶È(s)
-%   Fr ¾àÀëÏò²ÉÑùÂÊ(Hz)
-%   theta_rc Ğ±ÊÓ½Ç(rad)
-%   Nrg ¾àÀëÏò²ÉÑùµãÊı
-%   Naz ·½Î»Ïò²ÉÑùµãÊı
-%   near_range µÚÒ»¸ö²ÉÑùµã¾àÀë(m)
-%   Vr ÔØ»úËÙ¶È(m/s)
-%   PRF Âö³åÖØ¸´ÆµÂÊ(Hz)
-%   flag Îª1/0±íÊ¾»­/²»»­³öÖĞ¼ä²½ÖèµÄÍ¼
-%   moco_file ÔË¶¯²¹³¥ÔªÊı¾İÎÄ¼şÃû£¨¼´Æ½Ì¨¹ì¼£ĞÅÏ¢£©
-%   ref_range Ò»½×ÏàÎ»ÔË¶¯²¹³¥Ê±Ñ¡ÔñµÄ²Î¿¼¾àÀë
-%   subaperture_num ·½Î»Ïò¿Õ±ä²¹³¥Ê±×Ó¿×¾¶ÊıÁ¿
-%   range_size Ã¿¸ö»Ø²¨ĞÅºÅ×ÜµÄ²ÉÑùµãÊı
-%   azimuth_size ÓÃÓÚÀíÏë¹ì¼£ÄâºÏµÄ×ÜµÄ»Ø²¨¸öÊı
-%   range_start ÆğÊ¼¾àÀëÏò²ÉÑùµãÊı
-%   last_pulse_count ÉÏ´ÎÒÑ¾­´¦Àí¹ıµÄÂö³å¸öÊı£¨ÓÃÓÚ×·¼ÓÊ½´¦Àí£©
-%% ÆäËû²ÎÊı
-c=299792458;
-% ¾àÀëÏò
-delta_r = c/2/Fr;
-center_Rc = near_range + Nrg/2*delta_r;
-R_ref = center_Rc*cos(theta_rc);
-BW_r = abs(Kr)*Tr;
-gama_wr = 1.18;
-pr = 0.886*gama_wr/BW_r;
-start = near_range*2/c;
-% Nr = ceil(Fr*Tr/2)*2;
-% ·½Î»Ïò
-f0 = c/lambda;
-Fa = PRF;
-eta_c = (-R_ref*tan(theta_rc))/Vr;
-f_etac = 2*Vr*sin(theta_rc)/lambda;
-delta_a = Vr/Fa;
-gama_wa = 1.185;
-La = 0.886*lambda/theta_bw;
-pa = La/2*gama_wa;
-D_ref = cos(theta_rc);
-Vg = Vr;
-% Ta = 0.886*lambda*center_Rc/(La*Vg*cos(theta_rc));
-% Na = ceil(Fa*Ta/2)*2;
-%% ¾àÀë¶àÆÕÀÕÓò ±ä±ê
-if(flag == 1)
-    figure;subplot(221);
-    imagesc(real(s0));
-    xlabel('¾àÀëÏò£¨²ÉÑùµã£©');ylabel('·½Î»Ïò£¨²ÉÑùµã£©');title('(a)Ô­Ê¼ĞÅºÅÊµ²¿');
-end
-Srd = fft(s0,Naz,1);
-clear s0;
-if(flag == 1)
-    subplot(222);
-    imagesc(abs(Srd));
-    xlabel('¾àÀëÏò£¨²ÉÑùµã£©');ylabel('·½Î»ÆµÂÊ£¨²ÉÑùµã£©');title('(b)Ô­Ê¼ĞÅºÅµÄ¾àÀë¶àÆÕÀÕÓò');
-end
-f_eta_mtx = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
-f_eta_mtx = (round((f_etac-f_eta_mtx)/Fa)*Fa+f_eta_mtx); 
-D = sqrt(1-c^2*f_eta_mtx.^2/(4*Vr^2*f0^2));                         % áã¶¯²ÎÊı
-Km = Kr./(1-Kr*c*R_ref.*f_eta_mtx.^2./(2*Vr^2*f0^3*D.^3));             % ¼ÙÉè¾àÀë¶àÆÕÀÕÓòµÄKm²»Ëæ¾àÀë¸Ä±ä
-clear f_eta_mtx;
-% ssc_ft = exp(1j*pi*Km.*(D_ref./D_mtx-1).*tr_mtx_new.^2);             % ±ä±ê·½³Ì
-ssc = exp(1j*pi*repmat(Km.*(D_ref./D-1),1,Nrg).*(repmat(start +(0:(Nrg-1))/Fr,Naz,1) - repmat(2*R_ref./(c*D),1,Nrg)).^2);             % ±ä±ê·½³Ì
-clear Km D;
-S1 = ssc.*Srd;           % Óë±ä±ê·½³ÌÏà³Ë
-clear Srd ssc;
-%% ¶şÎ¬ÆµÓò ¾àÀë´¦Àí
-S2 = fft(S1,Nrg,2);         % ¾àÀëÏòFFT
-clear S1;
-f_eta_mtx = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
-f_eta_mtx = (round((f_etac-f_eta_mtx)/Fa)*Fa+f_eta_mtx); 
-D = sqrt(1-c^2*f_eta_mtx.^2/(4*Vr^2*f0^2));                   % áã¶¯²ÎÊı
-Km = Kr./(1-Kr*c*R_ref.*f_eta_mtx.^2./(2*Vr^2*f0^3*D.^3));             % ¼ÙÉè¾àÀë¶àÆÕÀÕÓòµÄKm²»Ëæ¾àÀë¸Ä±ä
-clear f_eta_mtx;
-f_tau_mtx = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg);
-% H_range_bulk = exp(1j*pi*(D_mtx.*f_tau_mtx.^2./(Km.*D_ref)+(4*R_ref*f_tau_mtx.*(1./D-1/D_ref)/c)));  % ÂË²¨Æ÷£¬×îÕ¼ÄÚ´æµÄ1²½ 
-H_range_bulk = exp(1j*pi*(repmat(D./(Km.*D_ref),1,Nrg).*repmat(f_tau_mtx.^2,Naz,1)+(4*R_ref*repmat(f_tau_mtx,Naz,1).*repmat((1./D-1/D_ref)/c,1,Nrg))));  % ÂË²¨Æ÷
-clear Km D f_tau_mtx;
-N_BW_r = round(BW_r/Fr*Nrg);            % Kr*Tr°üº¬µÄµãÊı
-window_r = ifftshift(kaiser(N_BW_r,2.5).');
-S3 = S2.*H_range_bulk;
-clear S2 H_range_bulk
-S3 = S3.*repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);           % ÂË²¨   
-clear window_r;
-
-%% ¶şÎ¬Ê±Óò ¾àÀë¿Õ±äÏàÎ»²¹³¥
-s4 = ifft2(S3);
-clear S3;
-% delta_R Ò»¸ö¾ØÕó£¬Ã¿Ò»ĞĞ´ú±í1µ½NrgÕâĞ©¾àÀëµãÏà¶ÔÓÚ²Î¿¼µãµÄ¾àÀëÎó²î
-delta_R = range_space_variant( moco_file,...
-    near_range, ref_range, Fr, range_size, azimuth_size,... 
-    Nrg, range_start, Naz, last_pulse_count);
-s4 = s4 .* exp(1j*4*pi*delta_R/lambda);
-clear delta_R;
-
-%% ¾àÀë¶àÆÕÀÕÓò ·½Î»´¦Àí
-S4 = fft(s4);
-clear s4;
-S4 = azimuth_space_variant( moco_file, S4, lambda, f_etac, Vr,...
-    subaperture_num, near_range, Fr, PRF, azimuth_size, last_pulse_count);
-%%
-%ÏÂÃæĞèÒª¾àÀë¶àÆÕÀÕÓòµÄS4
-if(flag == 1)
-    subplot(223);
-    imagesc(abs(S4));
-    xlabel('¾àÀëÏò£¨²ÉÑùµã£©');ylabel('·½Î»ÆµÂÊ£¨²ÉÑùµã£©');title('(c)¾àÀë´¦ÀíºóµÄ¾àÀë¶àÆÕÀÕÓò');
-end
-R0_mtx = (c/2)*(start +(0:(Nrg-1))/Fr)*cos(theta_rc);  % Ëæ¾àÀëÏß±ä»¯µÄ×î½ü¾àÀë
-f_eta_mtx = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
-f_eta_mtx = (round((f_etac-f_eta_mtx)/Fa)*Fa+f_eta_mtx); 
-D = sqrt(1-c^2*f_eta_mtx.^2/(4*Vr^2*f0^2));                   % áã¶¯²ÎÊı 
-Km_mtx = Kr./(1-Kr*c*repmat(R0_mtx,Naz,1).*repmat(f_eta_mtx.^2./(2*Vr^2*f0^3*D.^3),1,Nrg));    % Ëæ¾àÀë±ä»¯µÄ¾àÀëÏòµ÷ÆµÂÊ
-% H_az_add_offset = exp(1j*4*pi*(f0*R0_mtx.*D_mtx/c-Km_mtx.*(1-D_mtx./D_ref).*(R0_mtx./D_mtx-R0./D_mtx).^2./c^2)-1j*2*pi*fa_dop*nc);
-S4 = S4.*exp(1j*4*pi*(f0*repmat(R0_mtx,Naz,1).*repmat(D,1,Nrg)/c));
-S5 = S4.*exp(1j*4*pi*(-Km_mtx.*repmat((1-D./D_ref),1,Nrg)...
-    .*(repmat(R0_mtx,Naz,1)./repmat(D,1,Nrg)-repmat(R_ref./D,1,Nrg)).^2./c^2));
-clear S4 Km_mtx R0_mtx D
-S5 = S5.*exp(-1j*2*pi*repmat(f_eta_mtx,1,Nrg)*eta_c);
-% H_az_add_offset = exp(1j*4*pi*(-Km_mtx.*repmat((1-D./D_ref),1,Nrg)...
-%     .*(repmat(R0_mtx,Naz,1)./repmat(D,1,Nrg)-repmat(R_ref./D,1,Nrg)).^2./c^2)-1j*2*pi*repmat(f_eta_mtx,1,Nrg)*eta_c);   % ÂË²¨Æ÷£¬×îÕ¼ÄÚ´æµÄ1²½
-clear f_eta_mtx 
-% S5 = S4.*H_az_add_offset;                  % ÂË²¨
-img_cs = ifft(S5,Naz,1);                % ·½Î»ÏòIFFT
-if(flag == 1)
-    subplot(224);
-    imagesc(abs(img_cs));
-    xlabel('¾àÀëÏò£¨²ÉÑùµã£©');ylabel('·½Î»Ïò£¨²ÉÑùµã£©');title('(d)CSA³ÉÏñ½á¹û');
-end
+function img_cs = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,flag,...
+    moco_file, ref_range, subaperture_num, range_size, azimuth_size, range_start, last_pulse_count)
+%   Chirp Scalingç®—æ³•ï¼Œå¸¦æœ‰äºŒé˜¶è¿åŠ¨è¡¥å¿ï¼ˆè·ç¦»ç©ºå˜ç›¸ä½ï¼‰å’Œæ–¹ä½å­å­”å¾„å¤„ç†ï¼ˆæ–¹ä½ç©ºå˜ç›¸ä½ï¼‰
+%   s0 è¾“å…¥ä¿¡å·æ•°æ®ï¼ˆäºŒç»´å¤æ•°ç»„ï¼‰
+%   theta_bw å¤©çº¿æ–¹ä½å‘æ³¢æŸå®½åº¦(rad)
+%   lambda æ³¢é•¿(m)
+%   Kr è·ç¦»å‘è°ƒé¢‘ç‡(Hz/s)
+%   Tr å‘å°„è„‰å†²å®½åº¦(s)
+%   Fr è·ç¦»å‘é‡‡æ ·ç‡(Hz)
+%   theta_rc æ–œè§†è§’(rad)
+%   Nrg è·ç¦»å‘é‡‡æ ·ç‚¹æ•°
+%   Naz æ–¹ä½å‘é‡‡æ ·ç‚¹æ•°
+%   near_range ç¬¬ä¸€ä¸ªé‡‡æ ·ç‚¹è·ç¦»(m)
+%   Vr è½½æœºé€Ÿåº¦(m/s)
+%   PRF è„‰å†²é‡å¤é¢‘ç‡(Hz)
+%   flag ä¸º1/0è¡¨ç¤ºç”»/ä¸ç”»å‡ºä¸­é—´æ­¥éª¤çš„å›¾
+%   moco_file è¿åŠ¨è¡¥å¿å…ƒæ•°æ®æ–‡ä»¶åï¼ˆå³å¹³å°è½¨è¿¹ä¿¡æ¯ï¼‰
+%   ref_range ä¸€é˜¶ç›¸ä½è¿åŠ¨è¡¥å¿æ—¶é€‰æ‹©çš„å‚è€ƒè·ç¦»
+%   subaperture_num æ–¹ä½å‘ç©ºå˜è¡¥å¿æ—¶å­å­”å¾„æ•°é‡
+%   range_size æ¯ä¸ªå›æ³¢ä¿¡å·æ€»çš„é‡‡æ ·ç‚¹æ•°
+%   azimuth_size ç”¨äºç†æƒ³è½¨è¿¹æ‹Ÿåˆçš„æ€»çš„å›æ³¢ä¸ªæ•°
+%   range_start èµ·å§‹è·ç¦»å‘é‡‡æ ·ç‚¹æ•°
+%   last_pulse_count ä¸Šæ¬¡å·²ç»å¤„ç†è¿‡çš„è„‰å†²ä¸ªæ•°ï¼ˆç”¨äºè¿½åŠ å¼å¤„ç†ï¼‰
+%% å…¶ä»–å‚æ•°
+c=299792458;
+% è·ç¦»å‘
+delta_r = c/2/Fr;
+center_Rc = near_range + Nrg/2*delta_r;
+R_ref = center_Rc*cos(theta_rc);
+BW_r = abs(Kr)*Tr;
+gama_wr = 1.18;
+pr = 0.886*gama_wr/BW_r;
+start = near_range*2/c;
+% Nr = ceil(Fr*Tr/2)*2;
+% æ–¹ä½å‘
+f0 = c/lambda;
+Fa = PRF;
+eta_c = (-R_ref*tan(theta_rc))/Vr;
+f_etac = 2*Vr*sin(theta_rc)/lambda;
+delta_a = Vr/Fa;
+gama_wa = 1.185;
+La = 0.886*lambda/theta_bw;
+pa = La/2*gama_wa;
+D_ref = cos(theta_rc);
+Vg = Vr;
+% Ta = 0.886*lambda*center_Rc/(La*Vg*cos(theta_rc));
+% Na = ceil(Fa*Ta/2)*2;
+%% è·ç¦»å¤šæ™®å‹’åŸŸ å˜æ ‡
+if(flag == 1)
+    figure;subplot(221);
+    imagesc(real(s0));
+    xlabel('è·ç¦»å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(a)åŸå§‹ä¿¡å·å®éƒ¨');
+end
+Srd = fft(s0,Naz,1);
+clear s0;
+if(flag == 1)
+    subplot(222);
+    imagesc(abs(Srd));
+    xlabel('è·ç¦»å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½é¢‘ç‡ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(b)åŸå§‹ä¿¡å·çš„è·ç¦»å¤šæ™®å‹’åŸŸ');
+end
+f_eta_mtx = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
+f_eta_mtx = (round((f_etac-f_eta_mtx)/Fa)*Fa+f_eta_mtx); 
+D = sqrt(1-c^2*f_eta_mtx.^2/(4*Vr^2*f0^2));                         % å¾™åŠ¨å‚æ•°
+Km = Kr./(1-Kr*c*R_ref.*f_eta_mtx.^2./(2*Vr^2*f0^3*D.^3));             % å‡è®¾è·ç¦»å¤šæ™®å‹’åŸŸçš„Kmä¸éšè·ç¦»æ”¹å˜
+clear f_eta_mtx;
+% ssc_ft = exp(1j*pi*Km.*(D_ref./D_mtx-1).*tr_mtx_new.^2);             % å˜æ ‡æ–¹ç¨‹
+ssc = exp(1j*pi*repmat(Km.*(D_ref./D-1),1,Nrg).*(repmat(start +(0:(Nrg-1))/Fr,Naz,1) - repmat(2*R_ref./(c*D),1,Nrg)).^2);             % å˜æ ‡æ–¹ç¨‹
+clear Km D;
+S1 = ssc.*Srd;           % ä¸å˜æ ‡æ–¹ç¨‹ç›¸ä¹˜
+clear Srd ssc;
+%% äºŒç»´é¢‘åŸŸ è·ç¦»å¤„ç†
+S2 = fft(S1,Nrg,2);         % è·ç¦»å‘FFT
+clear S1;
+f_eta_mtx = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
+f_eta_mtx = (round((f_etac-f_eta_mtx)/Fa)*Fa+f_eta_mtx); 
+D = sqrt(1-c^2*f_eta_mtx.^2/(4*Vr^2*f0^2));                   % å¾™åŠ¨å‚æ•°
+Km = Kr./(1-Kr*c*R_ref.*f_eta_mtx.^2./(2*Vr^2*f0^3*D.^3));             % å‡è®¾è·ç¦»å¤šæ™®å‹’åŸŸçš„Kmä¸éšè·ç¦»æ”¹å˜
+clear f_eta_mtx;
+f_tau_mtx = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg);
+% H_range_bulk = exp(1j*pi*(D_mtx.*f_tau_mtx.^2./(Km.*D_ref)+(4*R_ref*f_tau_mtx.*(1./D-1/D_ref)/c)));  % æ»¤æ³¢å™¨ï¼Œæœ€å å†…å­˜çš„1æ­¥ 
+H_range_bulk = exp(1j*pi*(repmat(D./(Km.*D_ref),1,Nrg).*repmat(f_tau_mtx.^2,Naz,1)+(4*R_ref*repmat(f_tau_mtx,Naz,1).*repmat((1./D-1/D_ref)/c,1,Nrg))));  % æ»¤æ³¢å™¨
+clear Km D f_tau_mtx;
+N_BW_r = round(BW_r/Fr*Nrg);            % Kr*TråŒ…å«çš„ç‚¹æ•°
+window_r = ifftshift(kaiser(N_BW_r,2.5).');
+S3 = S2.*H_range_bulk;
+clear S2 H_range_bulk
+S3 = S3.*repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);           % æ»¤æ³¢   
+clear window_r;
+
+%% äºŒç»´æ—¶åŸŸ è·ç¦»ç©ºå˜ç›¸ä½è¡¥å¿
+s4 = ifft2(S3);
+clear S3;
+% delta_R ä¸€ä¸ªçŸ©é˜µï¼Œæ¯ä¸€è¡Œä»£è¡¨1åˆ°Nrgè¿™äº›è·ç¦»ç‚¹ç›¸å¯¹äºå‚è€ƒç‚¹çš„è·ç¦»è¯¯å·®
+delta_R = range_space_variant( moco_file,...
+    near_range, ref_range, Fr, range_size, azimuth_size,... 
+    Nrg, range_start, Naz, last_pulse_count);
+s4 = s4 .* exp(1j*4*pi*delta_R/lambda);
+clear delta_R;
+
+%% è·ç¦»å¤šæ™®å‹’åŸŸ æ–¹ä½å¤„ç†
+S4 = fft(s4);
+clear s4;
+S4 = azimuth_space_variant( moco_file, S4, lambda, f_etac, Vr,...
+    subaperture_num, near_range, Fr, PRF, azimuth_size, last_pulse_count);
+%%
+%ä¸‹é¢éœ€è¦è·ç¦»å¤šæ™®å‹’åŸŸçš„S4
+if(flag == 1)
+    subplot(223);
+    imagesc(abs(S4));
+    xlabel('è·ç¦»å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½é¢‘ç‡ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(c)è·ç¦»å¤„ç†åçš„è·ç¦»å¤šæ™®å‹’åŸŸ');
+end
+R0_mtx = (c/2)*(start +(0:(Nrg-1))/Fr)*cos(theta_rc);  % éšè·ç¦»çº¿å˜åŒ–çš„æœ€è¿‘è·ç¦»
+f_eta_mtx = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
+f_eta_mtx = (round((f_etac-f_eta_mtx)/Fa)*Fa+f_eta_mtx); 
+D = sqrt(1-c^2*f_eta_mtx.^2/(4*Vr^2*f0^2));                   % å¾™åŠ¨å‚æ•° 
+Km_mtx = Kr./(1-Kr*c*repmat(R0_mtx,Naz,1).*repmat(f_eta_mtx.^2./(2*Vr^2*f0^3*D.^3),1,Nrg));    % éšè·ç¦»å˜åŒ–çš„è·ç¦»å‘è°ƒé¢‘ç‡
+% H_az_add_offset = exp(1j*4*pi*(f0*R0_mtx.*D_mtx/c-Km_mtx.*(1-D_mtx./D_ref).*(R0_mtx./D_mtx-R0./D_mtx).^2./c^2)-1j*2*pi*fa_dop*nc);
+S4 = S4.*exp(1j*4*pi*(f0*repmat(R0_mtx,Naz,1).*repmat(D,1,Nrg)/c));
+S5 = S4.*exp(1j*4*pi*(-Km_mtx.*repmat((1-D./D_ref),1,Nrg)...
+    .*(repmat(R0_mtx,Naz,1)./repmat(D,1,Nrg)-repmat(R_ref./D,1,Nrg)).^2./c^2));
+clear S4 Km_mtx R0_mtx D
+S5 = S5.*exp(-1j*2*pi*repmat(f_eta_mtx,1,Nrg)*eta_c);
+% H_az_add_offset = exp(1j*4*pi*(-Km_mtx.*repmat((1-D./D_ref),1,Nrg)...
+%     .*(repmat(R0_mtx,Naz,1)./repmat(D,1,Nrg)-repmat(R_ref./D,1,Nrg)).^2./c^2)-1j*2*pi*repmat(f_eta_mtx,1,Nrg)*eta_c);   % æ»¤æ³¢å™¨ï¼Œæœ€å å†…å­˜çš„1æ­¥
+clear f_eta_mtx 
+% S5 = S4.*H_az_add_offset;                  % æ»¤æ³¢
+img_cs = ifft(S5,Naz,1);                % æ–¹ä½å‘IFFT
+if(flag == 1)
+    subplot(224);
+    imagesc(abs(img_cs));
+    xlabel('è·ç¦»å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title('(d)CSAæˆåƒç»“æœ');
+end
 end

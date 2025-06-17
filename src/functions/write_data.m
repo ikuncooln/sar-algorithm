@@ -1,28 +1,28 @@
-function [ ] = write_data(data, file_name, append)
-%WRITE_DATA ½«SAR¸´Êı¾İĞ´ÈëÎÄ¼ş£¬ÎÄ¼şÖĞÊı¾İ°´¿ìÊ±¼äÓÅÏÈ´æ´¢£¬¼´ÏÈ´æ´¢ÍêÄ³Ò»
-%   ·½Î»Ê±¿ÌËù·¢ÉäÂö³åËùÓĞ»Ø²¨ĞÅºÅºóÔÙ½Ó×Å´æ´¢ÏÂÒ»Âö³å»Ø²¨.Ã¿Ò»¸ö¸´IQ²ÉÑùµã°´ÊµĞé
-%   ½»ÌæµÄ·½Ê½´æ´¢£¬Êµ²¿Ğé²¿¾ùÊÇ4Î»floatÀàĞÍ.
-%
-%   °üº¬ÓĞSAR¸´Êı¾İµÄÊı×é£¬Ã¿Ò»ĞĞÎªÒ»¸öÂö³å»Ø²¨ĞÅºÅ
-%   file_name ÎÄ¼şÃû
-%   append 1±íÊ¾ÒÔ×·¼Ó·½Ê½Ğ´Èë£¬ÆäËûÖµ±íÊ¾ÒÔĞÂ½¨·½Ê½Ğ´Èë
-if append == 1
-    [fid, msg]= fopen(file_name, 'a');
-else
-    [fid, msg] = fopen(file_name, 'w');
-end
-if fid == -1
-    error(msg);
-end
-
-data = reshape(data.', [], 1);
-N = length(data);
-data_row = zeros(2*N, 1);
-data_row(1:2:end) = real(data);
-data_row(2:2:end) = imag(data);
-clear data
-fwrite(fid, data_row, 'float32');
-fclose(fid);
-clear data_row;
-end
-
+function [ ] = write_data(data, file_name, append)
+%WRITE_DATA å°†SARå¤æ•°æ®å†™å…¥æ–‡ä»¶ï¼Œæ–‡ä»¶ä¸­æ•°æ®æŒ‰å¿«æ—¶é—´ä¼˜å…ˆå­˜å‚¨ï¼Œå³å…ˆå­˜å‚¨å®ŒæŸä¸€
+%   æ–¹ä½æ—¶åˆ»æ‰€å‘å°„è„‰å†²æ‰€æœ‰å›æ³¢ä¿¡å·åå†æ¥ç€å­˜å‚¨ä¸‹ä¸€è„‰å†²å›æ³¢.æ¯ä¸€ä¸ªå¤IQé‡‡æ ·ç‚¹æŒ‰å®è™š
+%   äº¤æ›¿çš„æ–¹å¼å­˜å‚¨ï¼Œå®éƒ¨è™šéƒ¨å‡æ˜¯4ä½floatç±»å‹.
+%
+%   åŒ…å«æœ‰SARå¤æ•°æ®çš„æ•°ç»„ï¼Œæ¯ä¸€è¡Œä¸ºä¸€ä¸ªè„‰å†²å›æ³¢ä¿¡å·
+%   file_name æ–‡ä»¶å
+%   append 1è¡¨ç¤ºä»¥è¿½åŠ æ–¹å¼å†™å…¥ï¼Œå…¶ä»–å€¼è¡¨ç¤ºä»¥æ–°å»ºæ–¹å¼å†™å…¥
+if append == 1
+    [fid, msg]= fopen(file_name, 'a');
+else
+    [fid, msg] = fopen(file_name, 'w');
+end
+if fid == -1
+    error(msg);
+end
+
+data = reshape(data.', [], 1);
+N = length(data);
+data_row = zeros(2*N, 1);
+data_row(1:2:end) = real(data);
+data_row(2:2:end) = imag(data);
+clear data
+fwrite(fid, data_row, 'float32');
+fclose(fid);
+clear data_row;
+end
+

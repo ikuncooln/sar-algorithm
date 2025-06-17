@@ -1,45 +1,45 @@
-function [ img_Kuan ] = Kuan_filter( I, L )
-%KUAN_FILTER ¶ÔÍ¼Ïñ½øĞĞKuanÂË²¨
-% I ÊäÈë»Ò¶ÈÍ¼Ïñ[0,255]
-% L µÈĞ§ÊÓÊı
-% img_Lee LeeÂË²¨ºóÍ¼Ïñ
-% Ä¿Ç°´Ëº¯ÊıÈÏÎªÊäÈëÍ¼Ïñ±ß½çÊÇÖÜÆÚÍØÕ¹µÄ£¬ĞèÒª½øÒ»²½ÍêÉÆ£¨²Î¿¼imfilterº¯Êı£©
-% ºÍLeeÀàËÆ£¬ËüÒÀÀµÓÚ SAR Í¼ÏñµÄµÈĞ§ÊÓÊıÈ·¶¨²»Í¬µÄÈ¨ÖØº¯Êı½øĞĞÂË²¨
-% ½«°ßµãÔëÉùÄ£Äâ³É¼ÓĞÔÏßĞÔÄ£Ê½
-[height, width] = size(I);
-I = double(I);          % ±ÜÃâ¼ÆËãÊ±ÀàĞÍÒç³ö
-N = 7;                  % ÁÚÓò´°¿Ú´óĞ¡N*N
-N_half = floor(N/2);    % »¬´°°ë¾¶
-N_size = N*N;
-
-% prepare params
-Cz2 = 1 / L;
-
-img_Kuan = zeros(height, width);
-% filtering
-for m = 1:height
-    for n = 1:width
-        mm = -(N_half-1):N_half + m;
-        nn = -(N_half-1):N_half + n;
-        mm = mod(mm, height);
-        nn = mod(nn, width);
-        mm(mm==0) = height;
-        nn(nn==0) = width;
-        locval = I(mm, nn);
-        u = sum(locval(:)) / N_size;            % mean
-        v = sum(sum(locval.*locval)) / N_size - u*u;   % variance
-        if(u == 0)
-            Cy2 = 1;
-        else
-            Cy2 = v / (u*u);
-        end
-        k = (1-Cz2/Cy2)/(1+Cz2);
-        % caculate current filtered pixel value
-        img_Kuan(m,n) = u + k*(I(m,n)-u);
-    end
-end
-
-img_Kuan = uint8(img_Kuan);
-end
-
-
+function [ img_Kuan ] = Kuan_filter( I, L )
+%KUAN_FILTER å¯¹å›¾åƒè¿›è¡ŒKuanæ»¤æ³¢
+% I è¾“å…¥ç°åº¦å›¾åƒ[0,255]
+% L ç­‰æ•ˆè§†æ•°
+% img_Lee Leeæ»¤æ³¢åå›¾åƒ
+% ç›®å‰æ­¤å‡½æ•°è®¤ä¸ºè¾“å…¥å›¾åƒè¾¹ç•Œæ˜¯å‘¨æœŸæ‹“å±•çš„ï¼Œéœ€è¦è¿›ä¸€æ­¥å®Œå–„ï¼ˆå‚è€ƒimfilterå‡½æ•°ï¼‰
+% å’ŒLeeç±»ä¼¼ï¼Œå®ƒä¾èµ–äº SAR å›¾åƒçš„ç­‰æ•ˆè§†æ•°ç¡®å®šä¸åŒçš„æƒé‡å‡½æ•°è¿›è¡Œæ»¤æ³¢
+% å°†æ–‘ç‚¹å™ªå£°æ¨¡æ‹ŸæˆåŠ æ€§çº¿æ€§æ¨¡å¼
+[height, width] = size(I);
+I = double(I);          % é¿å…è®¡ç®—æ—¶ç±»å‹æº¢å‡º
+N = 7;                  % é‚»åŸŸçª—å£å¤§å°N*N
+N_half = floor(N/2);    % æ»‘çª—åŠå¾„
+N_size = N*N;
+
+% prepare params
+Cz2 = 1 / L;
+
+img_Kuan = zeros(height, width);
+% filtering
+for m = 1:height
+    for n = 1:width
+        mm = -(N_half-1):N_half + m;
+        nn = -(N_half-1):N_half + n;
+        mm = mod(mm, height);
+        nn = mod(nn, width);
+        mm(mm==0) = height;
+        nn(nn==0) = width;
+        locval = I(mm, nn);
+        u = sum(locval(:)) / N_size;            % mean
+        v = sum(sum(locval.*locval)) / N_size - u*u;   % variance
+        if(u == 0)
+            Cy2 = 1;
+        else
+            Cy2 = v / (u*u);
+        end
+        k = (1-Cz2/Cy2)/(1+Cz2);
+        % caculate current filtered pixel value
+        img_Kuan(m,n) = u + k*(I(m,n)-u);
+    end
+end
+
+img_Kuan = uint8(img_Kuan);
+end
+
+

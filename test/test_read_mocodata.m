@@ -1,25 +1,25 @@
-% ¶ÁÈ¡ÔË¶¯²¹³¥Êı¾İ
-clc;
-clear;
-close all;
-
-file_name = 'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\mocodata.dat';
-pulse_count = 20480;
-
-[ MOCO_UNIT_HEAD, MOCO_UNIT ] = read_mocodata( file_name, pulse_count );
-disp(['ÔØ»ú²Î¿¼prf', num2str(MOCO_UNIT_HEAD.ref_prf)]);
-% ÔØ»ú·ÉĞĞ¿Õ¼ä¹ì¼£
-figure;
-plot3(MOCO_UNIT.forward, MOCO_UNIT.cross, MOCO_UNIT.height);
-xlabel('forward'); ylabel('cross'); zlabel('height');
-% ÔØ»úÀíÏë·ÉĞĞ¹ì¼£
-hold on
-MOCO_UNIT.ref_corss = zeros(1,length(MOCO_UNIT.ref_forward));%£¿
-plot3(MOCO_UNIT.ref_forward,MOCO_UNIT.ref_corss , MOCO_UNIT.ref_height);
-grid on;
-
-
-
-
-% ÔË¶¯Îó²îµÄ¿Õ±äÌØĞÔ(Ğ±¾àÎó²îËæ¾àÀë±ä»¯£©
-
+% è¯»å–è¿åŠ¨è¡¥å¿æ•°æ®
+clc;
+clear;
+close all;
+
+file_name = 'D:\ç ”ä¸€ä¸‹è¯¾ç¨‹èµ„æ–™\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\ç¬¬ä¸‰æ¬¡å¤§ä½œä¸š\mocodata.dat';
+pulse_count = 20480;
+
+[ MOCO_UNIT_HEAD, MOCO_UNIT ] = read_mocodata( file_name, pulse_count );
+disp(['è½½æœºå‚è€ƒprf', num2str(MOCO_UNIT_HEAD.ref_prf)]);
+% è½½æœºé£è¡Œç©ºé—´è½¨è¿¹
+figure;
+plot3(MOCO_UNIT.forward, MOCO_UNIT.cross, MOCO_UNIT.height);
+xlabel('forward'); ylabel('cross'); zlabel('height');
+% è½½æœºç†æƒ³é£è¡Œè½¨è¿¹
+hold on
+MOCO_UNIT.ref_corss = zeros(1,length(MOCO_UNIT.ref_forward));%ï¼Ÿ
+plot3(MOCO_UNIT.ref_forward,MOCO_UNIT.ref_corss , MOCO_UNIT.ref_height);
+grid on;
+
+
+
+
+% è¿åŠ¨è¯¯å·®çš„ç©ºå˜ç‰¹æ€§(æ–œè·è¯¯å·®éšè·ç¦»å˜åŒ–ï¼‰
+

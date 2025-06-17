@@ -1,105 +1,105 @@
-function [ img_wk ] = wKA( s0, lambda, Kr, Vr, Fr, PRF, Rref, f_etac,Tr )
-%wKA Foucus your SAR data by Omega-K Algorithm
-%   
-%   s2 the focused image
-%   s1 the focused image without stolt map
-%   ...
-c = 299792458;
-f0 = c / lambda;
-Fa = PRF;
-
-%% 1. ²Î¿¼º¯ÊıÏà³Ë
-% ¹¹Ôì²Î¿¼º¯Êı
-[Naz, Nrg] = size(s0);
-f_tau = ifftshift(-Nrg/2:Nrg/2-1) * Fr / Nrg;
-f_eta = (ifftshift(-Naz/2:Naz/2-1) * Fa / Naz).';
-% ½«ÆµÂÊ[-Fa/2, Fa/2]Ó³Éä»ØÆäÊµ¼Ê£¨¾íÈÆÇ°£©¶ÔÓ¦µÄÆµÂÊ
-f_eta = f_eta + round((f_etac - f_eta) / Fa) * Fa;
-[f_tau_grid, f_eta_grid] = meshgrid(f_tau, f_eta);
-
-clear f_tau; clear f_eta;
-
-theta_ref = 4*pi*Rref / c * sqrt((f0+f_tau_grid).^2 ...
-- c^2*f_eta_grid.^2/(4*Vr^2)) + pi*f_tau_grid.^2/Kr;
-Href = exp(1j * theta_ref);
-clear theta_ref;
-S2df = fft2(s0);
-clear s0;
-% ÒòÎª²Î¿¼º¯ÊıÏà³ËÖĞÓĞÏßĞÔÏàÎ»2*pi*2*Rref/c/D£¬ËùÒÔĞèÒª½«Æä²¹³¥µô£¬²»È»Ê±Óò¾Í·¢ÉúÁËÆ½ÒÆ
-D_fetac_Vref = sqrt(1-c^2*f_etac^2/(4*Vr^2*f0^2));
-% Ò»ÖÂ²Î¿¼º¯ÊıÏà³Ëµ¼ÖÂµÄ¾àÀëÊ±¼äºÍ·½Î»Ê±¼äÆ«ÒÆ£¨Ö÷Òª¿´theta_refÕ¹¿ªÊ±ÖĞ¹ØÓÚf_tauºÍf_etaµÄÏßĞÔÏî£©
-tau_shift = (2*Rref/c/D_fetac_Vref);
-eta_shift = Rref * c * f_etac / (2 * Vr^2 * f0 * D_fetac_Vref);
-clear D_fetac_Vref;
-
-Hshift1 = exp(-1j*2*pi*f_tau_grid*tau_shift) ...
-    .*exp(1j*2*pi*f_eta_grid*eta_shift);
-clear tau_shift; clear eta_shift;
-S_RFM = S2df .* Href .* Hshift1;
-clear Href; clear Hshift1; clear S2df; 
-
-a_os_r = Fr/abs(Kr*Tr);
-N_BW_r = round(Nrg/a_os_r);            % Kr*Tr°üº¬µÄµãÊı
-window_r = ifftshift(kaiser(N_BW_r,2.5)');    % Kaiser´°
-window_r = repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);
-S_RFM = S_RFM.*window_r;
-clear window_r
-% s1 = ifft2(S_RFM);
-% figure;
-% imagesc(abs(s1)); title('ÎŞStolt²åÖµµÄÑ¹ËõÄ¿±ê');
-
-%% 2. StoltÓ³Éä
-% ¼ÆËãÓ³ÉäÆµÂÊÆ«ÒÆÁ¿
-f_tau1_0 = sqrt((f0 + 0)^2 - c^2*f_eta_grid.^2/(4*Vr^2)) - f0; % Ó³Éäºó¾àÀëÏòÖĞĞÄÆµÂÊ
-% ½«ÆµÂÊ[-Fr/2, Fr/2]Ó³Éä»ØÆäÊµ¼Ê£¨¾íÈÆÇ°£©¶ÔÓ¦µÄÆµÂÊ 
-f_tau1_grid = f_tau_grid + round((f_tau1_0 - f_tau_grid)/Fr)*Fr;
-OFFSET = sqrt((f_tau1_grid + f0).^2 + c^2*f_eta_grid.^2/(4*Vr^2)) - f0 - f_tau_grid;
-OFFSET = OFFSET / (Fr/Nrg);
-
-clear f_eta_grid; clear f_tau1_grid;
-
-% ÏÂÃæÀàËÆÓÚ¾àÀëáã¶¯Ğ£Õı½øĞĞ²åÖµ
-% ¼ÆËã²åÖµºËÏµÊı±í
-x_tmp = repmat(-4:3, 16, 1);
-offset_tmp = (1:16)/16;
-x_tmp = x_tmp + repmat(offset_tmp.', 1, 8);
-hx = sinc(x_tmp);
-x_tmp16 = x_tmp .* 16;
-x_tmp16 = round(x_tmp16 + 16 * 8 / 2);
-kwin = repmat(kaiser(16*8, 2.5).', 16, 1);
-hx = kwin(x_tmp16) .* hx;
-hx = hx ./ repmat(sum(hx, 2), 1, 8);
-
-% ×¤¶¨ÏàÎ»Ô­ÀíÒªÇóChirpĞÅºÅs(t)µÄ³ÖĞøÊ±¼äÎª[-T/2, T/2]£¬¶ûºóÎÒÃÇ²ÅÄÜÍÆ³öÊéÉÏµÄ
-% stoltÓ³Éä¹«Ê½¡£µ«ÎÒÃÇÖ±½Ó°´[-T/2, T/2]½ØÈ¡µÄĞÅºÅÈ¥×öDFT£¬ÄÇÃ´µÃµ½µÄĞÅºÅÆµÆ×Ïà±È
-% s(t)¶à³öÁËÏßĞÔÏàÎ»£¬Òò´ËÎÒÃÇĞèÒª½«Ê±¼äÖáÑ­»·ÒÆÎ»£¬»òÖ±½ÓÔÚÆµÓò½øĞĞÏßĞÔÏàÎ»²¹³¥
-% ¾ßÌå²Î¿¼Ê¹ÓÃMatlab×öFFT±ä»»ÖµµÃ×¢ÒâµÄÒ»Ğ©ÎÊÌâ.md
-Hshift2 = exp(-1j*2*pi*(f_tau_grid*(-Nrg/2/Fr)));
-clear f_tau_grid;
-S_RFM = S_RFM .* Hshift2;
-% ²åÖµÓ³Éä
-Sstolt = zeros(Naz, Nrg);  % ´æ·ÅStoltÓ³ÉäºóµÄĞÅºÅ
-hwait=waitbar(0,'ÇëµÈ´ı>>>>>>>>');
-for i = 1:Naz
-    for j = 1:Nrg
-        offset_int = ceil(OFFSET(i,j));
-        offset_frac = round((offset_int - OFFSET(i,j)) * 16);
-        if offset_frac == 0
-            Sstolt(i,j) = S_RFM(i,ceil(mod(j+offset_int-0.1,Nrg)));   % ÀûÓÃĞÅºÅÊı¾İS1µÄÖÜÆÚĞÔ¼Ù¶¨
-        else
-            Sstolt(i,j) = S_RFM(i, ceil(mod((j+offset_int-4:j+offset_int+3)-0.1,Nrg))) * hx(offset_frac,:).';
-        end
-        
-    end
-    if mod(i,200)== 0
-    waitbar(i/Naz,hwait,['StoltÓ³ÉäÖĞ: ', num2str(i/Naz*100), '%']);
-    end
-end
-close(hwait);
-clear OFFSET;
-
-Sstolt = Sstolt ./ Hshift2;  % Ä¿±êµãÒÑ¾­±»¶¨Î»ÔÚR0,È¥³ıÇ°ÃæµÄÒÆÎ»Ğ§¹û
-clear Hshift2;
-img_wk = ifft2(Sstolt);
-end
-
+function [ img_wk ] = wKA( s0, lambda, Kr, Vr, Fr, PRF, Rref, f_etac,Tr )
+%wKA Foucus your SAR data by Omega-K Algorithm
+%   
+%   s2 the focused image
+%   s1 the focused image without stolt map
+%   ...
+c = 299792458;
+f0 = c / lambda;
+Fa = PRF;
+
+%% 1. å‚è€ƒå‡½æ•°ç›¸ä¹˜
+% æ„é€ å‚è€ƒå‡½æ•°
+[Naz, Nrg] = size(s0);
+f_tau = ifftshift(-Nrg/2:Nrg/2-1) * Fr / Nrg;
+f_eta = (ifftshift(-Naz/2:Naz/2-1) * Fa / Naz).';
+% å°†é¢‘ç‡[-Fa/2, Fa/2]æ˜ å°„å›å…¶å®é™…ï¼ˆå·ç»•å‰ï¼‰å¯¹åº”çš„é¢‘ç‡
+f_eta = f_eta + round((f_etac - f_eta) / Fa) * Fa;
+[f_tau_grid, f_eta_grid] = meshgrid(f_tau, f_eta);
+
+clear f_tau; clear f_eta;
+
+theta_ref = 4*pi*Rref / c * sqrt((f0+f_tau_grid).^2 ...
+- c^2*f_eta_grid.^2/(4*Vr^2)) + pi*f_tau_grid.^2/Kr;
+Href = exp(1j * theta_ref);
+clear theta_ref;
+S2df = fft2(s0);
+clear s0;
+% å› ä¸ºå‚è€ƒå‡½æ•°ç›¸ä¹˜ä¸­æœ‰çº¿æ€§ç›¸ä½2*pi*2*Rref/c/Dï¼Œæ‰€ä»¥éœ€è¦å°†å…¶è¡¥å¿æ‰ï¼Œä¸ç„¶æ—¶åŸŸå°±å‘ç”Ÿäº†å¹³ç§»
+D_fetac_Vref = sqrt(1-c^2*f_etac^2/(4*Vr^2*f0^2));
+% ä¸€è‡´å‚è€ƒå‡½æ•°ç›¸ä¹˜å¯¼è‡´çš„è·ç¦»æ—¶é—´å’Œæ–¹ä½æ—¶é—´åç§»ï¼ˆä¸»è¦çœ‹theta_refå±•å¼€æ—¶ä¸­å…³äºf_tauå’Œf_etaçš„çº¿æ€§é¡¹ï¼‰
+tau_shift = (2*Rref/c/D_fetac_Vref);
+eta_shift = Rref * c * f_etac / (2 * Vr^2 * f0 * D_fetac_Vref);
+clear D_fetac_Vref;
+
+Hshift1 = exp(-1j*2*pi*f_tau_grid*tau_shift) ...
+    .*exp(1j*2*pi*f_eta_grid*eta_shift);
+clear tau_shift; clear eta_shift;
+S_RFM = S2df .* Href .* Hshift1;
+clear Href; clear Hshift1; clear S2df; 
+
+a_os_r = Fr/abs(Kr*Tr);
+N_BW_r = round(Nrg/a_os_r);            % Kr*TråŒ…å«çš„ç‚¹æ•°
+window_r = ifftshift(kaiser(N_BW_r,2.5)');    % Kaiserçª—
+window_r = repmat([window_r(1:ceil(N_BW_r/2)),zeros(1,Nrg-N_BW_r),window_r(ceil(N_BW_r/2)+1:N_BW_r)],Naz,1);
+S_RFM = S_RFM.*window_r;
+clear window_r
+% s1 = ifft2(S_RFM);
+% figure;
+% imagesc(abs(s1)); title('æ— Stoltæ’å€¼çš„å‹ç¼©ç›®æ ‡');
+
+%% 2. Stoltæ˜ å°„
+% è®¡ç®—æ˜ å°„é¢‘ç‡åç§»é‡
+f_tau1_0 = sqrt((f0 + 0)^2 - c^2*f_eta_grid.^2/(4*Vr^2)) - f0; % æ˜ å°„åè·ç¦»å‘ä¸­å¿ƒé¢‘ç‡
+% å°†é¢‘ç‡[-Fr/2, Fr/2]æ˜ å°„å›å…¶å®é™…ï¼ˆå·ç»•å‰ï¼‰å¯¹åº”çš„é¢‘ç‡ 
+f_tau1_grid = f_tau_grid + round((f_tau1_0 - f_tau_grid)/Fr)*Fr;
+OFFSET = sqrt((f_tau1_grid + f0).^2 + c^2*f_eta_grid.^2/(4*Vr^2)) - f0 - f_tau_grid;
+OFFSET = OFFSET / (Fr/Nrg);
+
+clear f_eta_grid; clear f_tau1_grid;
+
+% ä¸‹é¢ç±»ä¼¼äºè·ç¦»å¾™åŠ¨æ ¡æ­£è¿›è¡Œæ’å€¼
+% è®¡ç®—æ’å€¼æ ¸ç³»æ•°è¡¨
+x_tmp = repmat(-4:3, 16, 1);
+offset_tmp = (1:16)/16;
+x_tmp = x_tmp + repmat(offset_tmp.', 1, 8);
+hx = sinc(x_tmp);
+x_tmp16 = x_tmp .* 16;
+x_tmp16 = round(x_tmp16 + 16 * 8 / 2);
+kwin = repmat(kaiser(16*8, 2.5).', 16, 1);
+hx = kwin(x_tmp16) .* hx;
+hx = hx ./ repmat(sum(hx, 2), 1, 8);
+
+% é©»å®šç›¸ä½åŸç†è¦æ±‚Chirpä¿¡å·s(t)çš„æŒç»­æ—¶é—´ä¸º[-T/2, T/2]ï¼Œå°”åæˆ‘ä»¬æ‰èƒ½æ¨å‡ºä¹¦ä¸Šçš„
+% stoltæ˜ å°„å…¬å¼ã€‚ä½†æˆ‘ä»¬ç›´æ¥æŒ‰[-T/2, T/2]æˆªå–çš„ä¿¡å·å»åšDFTï¼Œé‚£ä¹ˆå¾—åˆ°çš„ä¿¡å·é¢‘è°±ç›¸æ¯”
+% s(t)å¤šå‡ºäº†çº¿æ€§ç›¸ä½ï¼Œå› æ­¤æˆ‘ä»¬éœ€è¦å°†æ—¶é—´è½´å¾ªç¯ç§»ä½ï¼Œæˆ–ç›´æ¥åœ¨é¢‘åŸŸè¿›è¡Œçº¿æ€§ç›¸ä½è¡¥å¿
+% å…·ä½“å‚è€ƒä½¿ç”¨MatlabåšFFTå˜æ¢å€¼å¾—æ³¨æ„çš„ä¸€äº›é—®é¢˜.md
+Hshift2 = exp(-1j*2*pi*(f_tau_grid*(-Nrg/2/Fr)));
+clear f_tau_grid;
+S_RFM = S_RFM .* Hshift2;
+% æ’å€¼æ˜ å°„
+Sstolt = zeros(Naz, Nrg);  % å­˜æ”¾Stoltæ˜ å°„åçš„ä¿¡å·
+hwait=waitbar(0,'è¯·ç­‰å¾…>>>>>>>>');
+for i = 1:Naz
+    for j = 1:Nrg
+        offset_int = ceil(OFFSET(i,j));
+        offset_frac = round((offset_int - OFFSET(i,j)) * 16);
+        if offset_frac == 0
+            Sstolt(i,j) = S_RFM(i,ceil(mod(j+offset_int-0.1,Nrg)));   % åˆ©ç”¨ä¿¡å·æ•°æ®S1çš„å‘¨æœŸæ€§å‡å®š
+        else
+            Sstolt(i,j) = S_RFM(i, ceil(mod((j+offset_int-4:j+offset_int+3)-0.1,Nrg))) * hx(offset_frac,:).';
+        end
+        
+    end
+    if mod(i,200)== 0
+    waitbar(i/Naz,hwait,['Stoltæ˜ å°„ä¸­: ', num2str(i/Naz*100), '%']);
+    end
+end
+close(hwait);
+clear OFFSET;
+
+Sstolt = Sstolt ./ Hshift2;  % ç›®æ ‡ç‚¹å·²ç»è¢«å®šä½åœ¨R0,å»é™¤å‰é¢çš„ç§»ä½æ•ˆæœ
+clear Hshift2;
+img_wk = ifft2(Sstolt);
+end
+

@@ -1,38 +1,38 @@
-function [ s0 ] = read_data( file_name, range_size, x0, y0, height, width)
-%READ_DATA ´ÓÎÄ¼şÖĞ¶ÁÈ¡SARÔ­Ê¼¸´Êı¾İ£¬ÎÄ¼şÖĞÊı¾İ°´¿ìÊ±¼äÓÅÏÈ´æ´¢£¬¼´ÏÈ´æ´¢ÍêÄ³Ò»
-%   ·½Î»Ê±¿ÌËù·¢ÉäÂö³åËùÓĞ»Ø²¨ĞÅºÅºóÔÙ½Ó×Å´æ´¢ÏÂÒ»Âö³å»Ø²¨.Ã¿Ò»¸ö¸´IQ²ÉÑùµã°´ÊµĞé
-%   ½»ÌæµÄ·½Ê½´æ´¢£¬Êµ²¿Ğé²¿¾ùÊÇ4Î»floatÀàĞÍ.
-%
-%   file_name ÎÄ¼şÃû
-%   range_size Ã¿Ò»¸öÂö³åËù¶ÔÓ¦»Ø²¨ĞÅºÅ¸´²ÉÑùµãÊı£¨·ù¿í£©
-%   x0 ¶ÁÈ¡Êı¾İÆğÊ¼Î»ÖÃµÄĞĞºÅ×ø±ê£¨´Ó1¿ªÊ¼£©
-%   y0 ¶ÁÈ¡Êı¾İÆğÊ¼Î»ÖÃµÄÁĞÁĞ×ø±ê£¨´Ó1¿ªÊ¼£©
-%   height ¶ÁÈ¡Êı¾İµÄ¸ß¶È£¨¸´²ÉÑùµã£©
-%   width ¶ÁÈ¡Êı¾İµÄ¿í¶È£¨¸´²ÉÑùµã£©
-%
-%   s0 ¸´ĞÅºÅÊı¾İ¾ØÕó
-
-%   Àı£º
-%       s0 = read_data('data_after_moco.dat', 16384, 1, 1, 4096, 4096)
-
-W = range_size; %  width (pixel) of raw_data(IQ)
-s0 = zeros(height, width);  % store the signal
-
-fid = fopen(file_name, 'r');
-if fid==-1
-    error(['ÎÄ¼ş', file_name, '²»´æÔÚ']);
-end
-offset = (2*(x0-1) + W*2*(y0-1))*4;
-fseek(fid, 0, -1);
-
-for r = 1:height
-    fseek(fid, offset, 0);
-    offset = (W*2 - width*2)*4;  % update offset
-    data_row = fread(fid, width*2,'float32');
-    data_row = data_row.';
-    s0(r,:) = data_row(1:2:end) + 1j*data_row(2:2:end);
-end
-fclose(fid);
-clear data_row;
-end
-
+function [ s0 ] = read_data( file_name, range_size, x0, y0, height, width)
+%READ_DATA ä»æ–‡ä»¶ä¸­è¯»å–SARåŸå§‹å¤æ•°æ®ï¼Œæ–‡ä»¶ä¸­æ•°æ®æŒ‰å¿«æ—¶é—´ä¼˜å…ˆå­˜å‚¨ï¼Œå³å…ˆå­˜å‚¨å®ŒæŸä¸€
+%   æ–¹ä½æ—¶åˆ»æ‰€å‘å°„è„‰å†²æ‰€æœ‰å›æ³¢ä¿¡å·åå†æ¥ç€å­˜å‚¨ä¸‹ä¸€è„‰å†²å›æ³¢.æ¯ä¸€ä¸ªå¤IQé‡‡æ ·ç‚¹æŒ‰å®è™š
+%   äº¤æ›¿çš„æ–¹å¼å­˜å‚¨ï¼Œå®éƒ¨è™šéƒ¨å‡æ˜¯4ä½floatç±»å‹.
+%
+%   file_name æ–‡ä»¶å
+%   range_size æ¯ä¸€ä¸ªè„‰å†²æ‰€å¯¹åº”å›æ³¢ä¿¡å·å¤é‡‡æ ·ç‚¹æ•°ï¼ˆå¹…å®½ï¼‰
+%   x0 è¯»å–æ•°æ®èµ·å§‹ä½ç½®çš„è¡Œå·åæ ‡ï¼ˆä»1å¼€å§‹ï¼‰
+%   y0 è¯»å–æ•°æ®èµ·å§‹ä½ç½®çš„åˆ—åˆ—åæ ‡ï¼ˆä»1å¼€å§‹ï¼‰
+%   height è¯»å–æ•°æ®çš„é«˜åº¦ï¼ˆå¤é‡‡æ ·ç‚¹ï¼‰
+%   width è¯»å–æ•°æ®çš„å®½åº¦ï¼ˆå¤é‡‡æ ·ç‚¹ï¼‰
+%
+%   s0 å¤ä¿¡å·æ•°æ®çŸ©é˜µ
+
+%   ä¾‹ï¼š
+%       s0 = read_data('data_after_moco.dat', 16384, 1, 1, 4096, 4096)
+
+W = range_size; %  width (pixel) of raw_data(IQ)
+s0 = zeros(height, width);  % store the signal
+
+fid = fopen(file_name, 'r');
+if fid==-1
+    error(['æ–‡ä»¶', file_name, 'ä¸å­˜åœ¨']);
+end
+offset = (2*(x0-1) + W*2*(y0-1))*4;
+fseek(fid, 0, -1);
+
+for r = 1:height
+    fseek(fid, offset, 0);
+    offset = (W*2 - width*2)*4;  % update offset
+    data_row = fread(fid, width*2,'float32');
+    data_row = data_row.';
+    s0(r,:) = data_row(1:2:end) + 1j*data_row(2:2:end);
+end
+fclose(fid);
+clear data_row;
+end
+

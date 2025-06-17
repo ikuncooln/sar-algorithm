@@ -1,51 +1,51 @@
-function [ delta_R ] = range_space_variant( moco_file,...
-    near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
-    width, range_start, pulse_count, last_pulse_count)
-%RANGE_SPACE_VARIANT ¼ÆËã¾àÀëÏòÏà¶ÔÓÚ²Î¿¼Î»ÖÃµÄ¿Õ±ä¾àÀëÎó²î
-%   moco_file ÔË¶¯²¹³¥ÔªÊı¾İÎÄ¼şÃû£¨¼´Æ½Ì¨¹ì¼£ĞÅÏ¢£©
-%   near_range ×î½üµã×î½üĞ±¾à
-%   ref_range Ò»½×ÏàÎ»ÔË¶¯²¹³¥Ê±Ñ¡ÔñµÄ²Î¿¼¾àÀë
-%   range_sample_rate ¾àÀëÏò²ÉÑùÂÊ
-%   range_size Ã¿¸ö»Ø²¨ĞÅºÅ×ÜµÄ²ÉÑùµãÊı
-%   azimuth_size ÓÃÓÚÀíÏë¹ì¼£ÄâºÏµÄ×ÜµÄ»Ø²¨¸öÊı
-%   width ¼ÆËãÏà¶Ô¾àÀëÎó²îÇøÓòµÄ¾àÀëÏò¿í¶È£¨²ÉÑùµãÊı£©
-%   range_start ¼ÆËãÏà¶Ô¾àÀëÎó²îÇøÓòµÄÆğÊ¼¾àÀëÏò²ÉÑùµã
-%   pulse_count ±¾´Î´¦ÀíÂö³å¸öÊı
-%   last_pulse_count ÉÏ´ÎÒÑ¾­´¦Àí¹ıµÄÂö³å¸öÊı£¨ÓÃÓÚ×·¼ÓÊ½´¦Àí£©
-c = 299792458;
-Fr = range_sample_rate;
-Nrg = range_size;
-delta_r = c/2/Fr;                           % ¾àÀëÏò²ÉÑù¼ä¾à
-
-[ ~, MOCO_UNIT ] = read_mocodata( moco_file,azimuth_size );
-xi = reshape(MOCO_UNIT.forward, [], 1);
-yi = reshape(MOCO_UNIT.cross, [], 1);
-zi = reshape(MOCO_UNIT.height, [], 1);
-% ÄâºÏ³öÀíÏëº½¼£
-p = polyfit(xi, yi, 1);
-yi_ideal = polyval(p, xi);
-href = mean(zi(:)); % ÀíÏë²Î¿¼¸ß¶È
-% ½öĞè±£Áô±¾´Î´¦Àí²¿·ÖĞÅÏ¢
-idx = last_pulse_count+1:pulse_count;
-yi = yi(idx); zi = zi(idx);
-yi_ideal = yi_ideal(idx);
-
-% ¼ÆËãĞ±¾àÎó²î
-R0 = near_range + (0:Nrg-1)*delta_r;
-cos_alpha = href ./ R0;
-sin_alpha = sqrt(1-cos_alpha.^2);
-[cos_alpha_mtx, delta_y] = meshgrid(cos_alpha, yi-yi_ideal);
-[sin_alpha_mtx, delta_z] = meshgrid(sin_alpha, zi-href);
-
-delta_R = delta_z .* cos_alpha_mtx;
-clear delta_z cos_alpha_mtx;
-delta_R = delta_R + delta_y .* sin_alpha_mtx;
-clear delta_y sin_alpha_mtx
-
-N0 = round((ref_range - near_range) / delta_r) + 1;
-assert(N0<=Nrg);
-delta_R = delta_R - repmat(delta_R(:, N0), 1, range_size);
-delta_R = delta_R(:, range_start+1:range_start+width);
-
-end
-
+function [ delta_R ] = range_space_variant( moco_file,...
+    near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
+    width, range_start, pulse_count, last_pulse_count)
+%RANGE_SPACE_VARIANT è®¡ç®—è·ç¦»å‘ç›¸å¯¹äºå‚è€ƒä½ç½®çš„ç©ºå˜è·ç¦»è¯¯å·®
+%   moco_file è¿åŠ¨è¡¥å¿å…ƒæ•°æ®æ–‡ä»¶åï¼ˆå³å¹³å°è½¨è¿¹ä¿¡æ¯ï¼‰
+%   near_range æœ€è¿‘ç‚¹æœ€è¿‘æ–œè·
+%   ref_range ä¸€é˜¶ç›¸ä½è¿åŠ¨è¡¥å¿æ—¶é€‰æ‹©çš„å‚è€ƒè·ç¦»
+%   range_sample_rate è·ç¦»å‘é‡‡æ ·ç‡
+%   range_size æ¯ä¸ªå›æ³¢ä¿¡å·æ€»çš„é‡‡æ ·ç‚¹æ•°
+%   azimuth_size ç”¨äºç†æƒ³è½¨è¿¹æ‹Ÿåˆçš„æ€»çš„å›æ³¢ä¸ªæ•°
+%   width è®¡ç®—ç›¸å¯¹è·ç¦»è¯¯å·®åŒºåŸŸçš„è·ç¦»å‘å®½åº¦ï¼ˆé‡‡æ ·ç‚¹æ•°ï¼‰
+%   range_start è®¡ç®—ç›¸å¯¹è·ç¦»è¯¯å·®åŒºåŸŸçš„èµ·å§‹è·ç¦»å‘é‡‡æ ·ç‚¹
+%   pulse_count æœ¬æ¬¡å¤„ç†è„‰å†²ä¸ªæ•°
+%   last_pulse_count ä¸Šæ¬¡å·²ç»å¤„ç†è¿‡çš„è„‰å†²ä¸ªæ•°ï¼ˆç”¨äºè¿½åŠ å¼å¤„ç†ï¼‰
+c = 299792458;
+Fr = range_sample_rate;
+Nrg = range_size;
+delta_r = c/2/Fr;                           % è·ç¦»å‘é‡‡æ ·é—´è·
+
+[ ~, MOCO_UNIT ] = read_mocodata( moco_file,azimuth_size );
+xi = reshape(MOCO_UNIT.forward, [], 1);
+yi = reshape(MOCO_UNIT.cross, [], 1);
+zi = reshape(MOCO_UNIT.height, [], 1);
+% æ‹Ÿåˆå‡ºç†æƒ³èˆªè¿¹
+p = polyfit(xi, yi, 1);
+yi_ideal = polyval(p, xi);
+href = mean(zi(:)); % ç†æƒ³å‚è€ƒé«˜åº¦
+% ä»…éœ€ä¿ç•™æœ¬æ¬¡å¤„ç†éƒ¨åˆ†ä¿¡æ¯
+idx = last_pulse_count+1:pulse_count;
+yi = yi(idx); zi = zi(idx);
+yi_ideal = yi_ideal(idx);
+
+% è®¡ç®—æ–œè·è¯¯å·®
+R0 = near_range + (0:Nrg-1)*delta_r;
+cos_alpha = href ./ R0;
+sin_alpha = sqrt(1-cos_alpha.^2);
+[cos_alpha_mtx, delta_y] = meshgrid(cos_alpha, yi-yi_ideal);
+[sin_alpha_mtx, delta_z] = meshgrid(sin_alpha, zi-href);
+
+delta_R = delta_z .* cos_alpha_mtx;
+clear delta_z cos_alpha_mtx;
+delta_R = delta_R + delta_y .* sin_alpha_mtx;
+clear delta_y sin_alpha_mtx
+
+N0 = round((ref_range - near_range) / delta_r) + 1;
+assert(N0<=Nrg);
+delta_R = delta_R - repmat(delta_R(:, N0), 1, range_size);
+delta_R = delta_R(:, range_start+1:range_start+width);
+
+end
+

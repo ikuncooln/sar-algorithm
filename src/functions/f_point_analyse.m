@@ -1,167 +1,167 @@
-function [image_upsample,signal_r,quality_r,signal_a,quality_a] = f_point_analyse(target,delta_r,delta_a,ratio,show)
-%    ÊäÈëµãÄ¿±êÇÐÆ¬£¬Êä³öÉý²ÉÑùºóµÄ½á¹ûÒÔ¼°¸÷²ÎÊý
-%ÊäÈë²ÎÊý£º
-%    targetÊÇ´ý·ÖÎöµÄµãÄ¿±êÇÐÆ¬£¨¶þÎ¬¸´Êý¾ØÕó£©
-%    delta_r¡¢delta_a·Ö±ðÊÇ¾àÀëÏò¡¢·½Î»Ïò²ÉÑù¼ä¾à£¨µ¥Î»Îªm£©
-%    ratioÊÇÉý²ÉÑù±¶Êý£¬È±Ê¡ÖµÊÇ16
-%    showÎª1Ê±±íÊ¾»­³öÉý²ÉÑùÖÐ¼ä²½ÖèÍ¼£¬ÆäËûÖµÔò²»»­³ö£¬È±Ê¡Îª0
-%·µ»ØÖµ£º
-%    image_upsampleÊÇÉý²ÉÑùºóµÄ½á¹û£¨¶þÎ¬¸´Êý¾ØÕó£©
-%    signal_rÊÇ¾àÀëÏòÇÐÆ¬£¨Ò»Î¬¸´ÊýÏòÁ¿£©
-%    quality_rÎª¸ÃÇÐÆ¬¶ÔÓ¦µÄÖÊÁ¿²ÎÊý£¬3¸öÖµ·Ö±ðÎªIRW£¨µ¥Î»Îªm£©¡¢PSLR¡¢ISLR
-%    signal_aÊÇ·½Î»ÏòÇÐÆ¬£¨Ò»Î¬¸´ÊýÏòÁ¿£©
-%    quality_aÎª¸ÃÇÐÆ¬¶ÔÓ¦µÄÖÊÁ¿²ÎÊý£¬3¸öÖµ·Ö±ðÎªIRW£¨µ¥Î»Îªm£©¡¢PSLR¡¢ISLR
-if ~exist('ratio', 'var'),
-    ratio = 16;
-end
-if ~exist('show', 'var'),
-    show = 0;
-end
-[size_a,size_r] = size(target);
-% Ô­Ê¼¶þÎ¬ÆµÆ×
-target_ff = fft2(target);
-
-% ÆµÆ×°áÒÆ
-step = 0.1;
-k = 1.1;
-while(1)  
-    % ÕÒµ½ÆµÆ×ÖØÐÄ
-    bw = repmat(abs(target_ff)>=max(abs(target_ff(:)))/k,3,3);
-    [L,num] = bwlabel(bw,4);
-    max_area = 0;
-    for n = 1:num
-        if(length(find(L==n)) > max_area);
-            max_n = n;
-            max_area = length(find(L==n));
-        end
-    end
-    [az,rg]=find(L==max_n);
-    max_a0 = round(mean(az));
-    max_r0 = round(mean(rg));     
-    % ½«ÆµÆ×°áÒÆÖÁÀàËÆP38µÄÐÎÊ½£¬Ï£Íû°áÒÆÖ®ºóÓÐ9¸öÁ¬Í¨ÇøÓò
-    target_ff_shift = circshift(target_ff,-max_a0,1);
-    target_ff_shift = circshift(target_ff_shift,-max_r0,2);
-    four = repmat(target_ff_shift,2,2); % Õý³£Çé¿öÏÂ£¬°áÒÆÖ®ºóÓÐ9¸öÁ¬Í¨ÇøÓò   
-    test = (abs(four) >= max(abs(four(:)))/k);
-    [~,num_block] = bwlabel(test,4);
-    if(num_block ==9)
-        break;
-    else
-        k = k+step;
-    end
-end
-
-pos_a = get_interval(target_ff_shift);
-pos_r = get_interval(target_ff_shift.');
-
-% im´ú±íÕÒµ½µÄ±ß½çµã
-im = zeros(2*size_a,2*size_r);
-for az = 1:2*size_a
-    for rg = 1:2*size_r
-        im(az,pos_r(ceil(mod(az-0.1,size_a)))) = 1;
-        im(pos_a(ceil(mod(rg-0.1,size_r))),rg)=1;
-        im(az,size_r+pos_r(ceil(mod(az-0.1,size_a)))) = 1;
-        im(size_a+pos_a(ceil(mod(rg-0.1,size_r))),rg)=1;
-    end
-end
-% ½«±ß½çµãÁ¬½ÓÆðÀ´
-[~,num] = bwlabel(im,4);
-while(num >1)
-    im = bwmorph(im,'dilate');
-    [~,num] = bwlabel(im,4);
-end
-boundary = bwmorph(im,'thin',Inf);
-
-[L_final,~] = bwlabel(1-boundary,4);
-L_final = bwmorph(L_final==L_final(size_a+1,size_r+1),'close',Inf);
-
-L_all = L_final*1 + fftshift(L_final,1)*2 + fftshift(L_final,2)*3....
-        + fftshift(L_final)*4;
-L_all = circshift(L_all,max_a0,1);
-L_all = circshift(L_all,max_r0,2);  
-chose = [L_all(1,1),L_all(2*size_a,1),L_all(1,2*size_r),L_all(2*size_a,2*size_r)];
-chose = chose(chose~=0);
-tmp = repmat(target_ff,2,2).*(L_all == mode(chose));
-
-%% ²¹Áã
-N_fft_a = 2^nextpow2(ratio*size_a);
-N_fft_r = 2^nextpow2(ratio*size_r);
-
-target_ff_up = zeros(N_fft_a,N_fft_r);
-target_ff_up(1:size_a,1:size_r) = tmp(1:size_a,1:size_r);
-target_ff_up(N_fft_a-size_a+1:N_fft_a,1:size_r) = tmp(1+size_a:2*size_a,1:size_r);
-target_ff_up(1:size_a,N_fft_r-size_r+1:N_fft_r) = tmp(1:size_a,1+size_r:2*size_r);
-target_ff_up(N_fft_a-size_a+1:N_fft_a,N_fft_r-size_r+1:N_fft_r) = tmp(1+size_a:2*size_a,1+size_r:2*size_r);
-
-%% ifft
-image_upsample = ifft2(target_ff_up);
-if (show == 1)
-%     figure;subplot(231);imagesc(abs(target_ff));title('(a)Ô­Ê¼ÆµÆ×');
-%     subplot(232);imagesc(abs(repmat(target_ff,2,2)));title('(b)¸´ÖÆºóµÄÆµÆ×');
-%     subplot(233);imagesc(abs(four));title('(c)°áÒÆ¡¢¸´ÖÆºóµÄÆµÆ×');
-%     subplot(234);imagesc(abs(four.*L_final));title('(d)È¡³öµÄÆµÆ×');
-%     subplot(235);imagesc(abs(tmp));title('(e)²¹Áã½á¹ûÊ¾Òâ');
-%     subplot(236);imagesc(abs(image_upsample));title('(f)Éý²ÉÑùºóµÄÊ±Óò');
-    figure;
-    subplot(121);imagesc(abs(target_ff));title('(a)Ô­Ê¼ÆµÆ×');
-    subplot(122);imagesc(abs(tmp));title('(b)²¹ÁãºóµÄÆµÆ×');
-end
-%% ¾àÀëºÍ·½Î»ÆÊÃæ£¨Ö±½Ó½ØÈ¡Ë®Æ½ºÍ´¹Ö±ÆÊÃæ£©
-% [az_cut,rg_cut] = find(abs(image_upsample) == max(abs(image_upsample(:))),1); % ×î´óÖµµã
-% signal_r = image_upsample(az_cut,:); % ¾àÀëÆÊÃæ
-% quality_r = f_IRW_PSLR_ISLR(signal_r);
-% quality_r(1) = quality_r(1)*size_r/N_fft_r*delta_r_new;
-% signal_a = image_upsample(:,rg_cut); % ·½Î»ÆÊÃæ
-% quality_a = f_IRW_PSLR_ISLR(signal_a);
-% quality_a(1) = quality_a(1)*size_a/N_fft_a*delta_a_new;
-%% ¾àÀëºÍ·½Î»ÆÊÃæ£¨Êó±êÑ¡È¡£©
-figure;imagesc(abs(image_upsample));
-[max_az,max_rg] = find(abs(image_upsample) == max(abs(image_upsample(:))),1);
-hold on;plot(max_rg,max_az,'r.');
-% µÚÒ»ÏÂÑ¡Ôñ¾àÀëÏòÆÊÃæ£¬µÚ¶þÏÂÑ¡Ôñ·½Î»ÏòÆÊÃæ
-[loc_rg,loc_az] = ginput(2);
-% ¾àÀëÏò
-k_r = (loc_az(1)-max_az)/(loc_rg(1)-max_rg);
-x_r = 1:N_fft_r;
-y_r = max_az + round(k_r*(x_r-max_rg));
-x_r = x_r(y_r>=1&y_r<=N_fft_a);
-y_r = y_r(y_r>=1&y_r<=N_fft_a);
-signal_r = image_upsample(sub2ind([N_fft_a,N_fft_r],y_r,x_r));
-quality_r = f_IRW_PSLR_ISLR(signal_r);
-delta_r_new = sqrt(delta_r^2+k_r^2*delta_a^2);
-quality_r(1) = quality_r(1)*size_r/N_fft_r*delta_r_new;
-disp(['¾àÀëÏò·Ö±æÂÊ:',num2str(quality_r(1)),'m']);
-disp(['¾àÀëÏò·åÖµÅÔ°ê±È:',num2str(quality_r(2)),'dB']);
-disp(['¾àÀëÏò»ý·ÖÅÔ°ê±È:',num2str(quality_r(3)),'dB']);
-% ·½Î»Ïò
-k_a = (loc_rg(2)-max_rg)/(loc_az(2)-max_az);
-y_a = 1:N_fft_a;
-x_a = max_rg + round(k_a*(y_a-max_az));
-y_a = y_a(x_a>=1&x_a<=N_fft_r);
-x_a = x_a(x_a>=1&x_a<=N_fft_r);
-signal_a = image_upsample(sub2ind([N_fft_a,N_fft_r],y_a,x_a));
-quality_a = f_IRW_PSLR_ISLR(signal_a);
-delta_a_new = sqrt(delta_a^2+k_a^2*delta_r^2);
-quality_a(1) = quality_a(1)*size_a/N_fft_a*delta_a_new;
-disp(['·½Î»Ïò·Ö±æÂÊ:',num2str(quality_a(1)),'m']);
-disp(['·½Î»Ïò·åÖµÅÔ°ê±È:',num2str(quality_a(2)),'dB']);
-disp(['·½Î»Ïò»ý·ÖÅÔ°ê±È:',num2str(quality_a(3)),'dB']);
-% »­ÏßÊ¾Òâ
-plot(x_r,y_r,'r',x_a,y_a,'r');
-hold off;
-%% »­Í¼
-xticks = 0:size_r/N_fft_r:size_r-size_r/N_fft_r;
-yticks = 0:size_a/N_fft_a:size_a-size_a/N_fft_a;
-x_r_ticks = (x_r-1)*size_r/N_fft_r;
-y_r_ticks = (y_r-1)*size_a/N_fft_a;
-x_a_ticks = (x_a-1)*size_r/N_fft_r;
-y_a_ticks = (y_a-1)*size_a/N_fft_a;
-figure;
-subplot(321);imagesc(xticks,yticks,abs(image_upsample));title('(a)·Å´óºóµÄµãÄ¿±ê');xlabel('¾àÀëÏò£¨²ÉÑùµã£©');ylabel('·½Î»Ïò£¨²ÉÑùµã£©');
-hold on;plot(x_r_ticks,y_r_ticks,'r',x_a_ticks,y_a_ticks,'r');hold off;
-subplot(322);contour(xticks,yticks,abs(image_upsample),30);title('(b)·Å´óºóµÄµãÄ¿±êµÈÖµÏßÍ¼');set(gca,'YDir','reverse');xlabel('¾àÀëÏò£¨²ÉÑùµã£©');ylabel('·½Î»Ïò£¨²ÉÑùµã£©');
-subplot(323);plot(x_r_ticks*delta_r_new,20*log10(abs(signal_r)/max(abs(signal_r(:)))));xlim([min(x_r_ticks*delta_r_new),max(x_r_ticks*delta_r_new)]);ylim([-35,0]);title('(c)¾àÀëÆÊÃæÍ¼');xlabel('¾àÀëÏò(m)');ylabel('·ù¶È(dB)');
-subplot(324);plot(y_a_ticks*delta_a_new,20*log10(abs(signal_a)/max(abs(signal_a(:)))));xlim([min(y_a_ticks*delta_a_new),max(y_a_ticks*delta_a_new)]);ylim([-35,0]);title('(d)·½Î»ÆÊÃæÍ¼');xlabel('·½Î»Ïò(m)');ylabel('·ù¶È(dB)');
-subplot(325);plot(x_r_ticks*delta_r_new,angle(signal_r)*180/pi);xlim([min(x_r_ticks*delta_r_new),max(x_r_ticks*delta_r_new)]);ylim([-200,200]);title('(e)¾àÀëÏàÎ»');xlabel('¾àÀëÏò(m)');ylabel('ÏàÎ»(¡ã)');
-subplot(326);plot(y_a_ticks*delta_a_new,angle(signal_a)*180/pi);xlim([min(y_a_ticks*delta_a_new),max(y_a_ticks*delta_a_new)]);ylim([-200,200]);title('(f)·½Î»ÏàÎ»');xlabel('·½Î»Ïò(m)');ylabel('ÏàÎ»(¡ã)');
+function [image_upsample,signal_r,quality_r,signal_a,quality_a] = f_point_analyse(target,delta_r,delta_a,ratio,show)
+%    è¾“å…¥ç‚¹ç›®æ ‡åˆ‡ç‰‡ï¼Œè¾“å‡ºå‡é‡‡æ ·åŽçš„ç»“æžœä»¥åŠå„å‚æ•°
+%è¾“å…¥å‚æ•°ï¼š
+%    targetæ˜¯å¾…åˆ†æžçš„ç‚¹ç›®æ ‡åˆ‡ç‰‡ï¼ˆäºŒç»´å¤æ•°çŸ©é˜µï¼‰
+%    delta_rã€delta_aåˆ†åˆ«æ˜¯è·ç¦»å‘ã€æ–¹ä½å‘é‡‡æ ·é—´è·ï¼ˆå•ä½ä¸ºmï¼‰
+%    ratioæ˜¯å‡é‡‡æ ·å€æ•°ï¼Œç¼ºçœå€¼æ˜¯16
+%    showä¸º1æ—¶è¡¨ç¤ºç”»å‡ºå‡é‡‡æ ·ä¸­é—´æ­¥éª¤å›¾ï¼Œå…¶ä»–å€¼åˆ™ä¸ç”»å‡ºï¼Œç¼ºçœä¸º0
+%è¿”å›žå€¼ï¼š
+%    image_upsampleæ˜¯å‡é‡‡æ ·åŽçš„ç»“æžœï¼ˆäºŒç»´å¤æ•°çŸ©é˜µï¼‰
+%    signal_ræ˜¯è·ç¦»å‘åˆ‡ç‰‡ï¼ˆä¸€ç»´å¤æ•°å‘é‡ï¼‰
+%    quality_rä¸ºè¯¥åˆ‡ç‰‡å¯¹åº”çš„è´¨é‡å‚æ•°ï¼Œ3ä¸ªå€¼åˆ†åˆ«ä¸ºIRWï¼ˆå•ä½ä¸ºmï¼‰ã€PSLRã€ISLR
+%    signal_aæ˜¯æ–¹ä½å‘åˆ‡ç‰‡ï¼ˆä¸€ç»´å¤æ•°å‘é‡ï¼‰
+%    quality_aä¸ºè¯¥åˆ‡ç‰‡å¯¹åº”çš„è´¨é‡å‚æ•°ï¼Œ3ä¸ªå€¼åˆ†åˆ«ä¸ºIRWï¼ˆå•ä½ä¸ºmï¼‰ã€PSLRã€ISLR
+if ~exist('ratio', 'var'),
+    ratio = 16;
+end
+if ~exist('show', 'var'),
+    show = 0;
+end
+[size_a,size_r] = size(target);
+% åŽŸå§‹äºŒç»´é¢‘è°±
+target_ff = fft2(target);
+
+% é¢‘è°±æ¬ç§»
+step = 0.1;
+k = 1.1;
+while(1)  
+    % æ‰¾åˆ°é¢‘è°±é‡å¿ƒ
+    bw = repmat(abs(target_ff)>=max(abs(target_ff(:)))/k,3,3);
+    [L,num] = bwlabel(bw,4);
+    max_area = 0;
+    for n = 1:num
+        if(length(find(L==n)) > max_area);
+            max_n = n;
+            max_area = length(find(L==n));
+        end
+    end
+    [az,rg]=find(L==max_n);
+    max_a0 = round(mean(az));
+    max_r0 = round(mean(rg));     
+    % å°†é¢‘è°±æ¬ç§»è‡³ç±»ä¼¼P38çš„å½¢å¼ï¼Œå¸Œæœ›æ¬ç§»ä¹‹åŽæœ‰9ä¸ªè¿žé€šåŒºåŸŸ
+    target_ff_shift = circshift(target_ff,-max_a0,1);
+    target_ff_shift = circshift(target_ff_shift,-max_r0,2);
+    four = repmat(target_ff_shift,2,2); % æ­£å¸¸æƒ…å†µä¸‹ï¼Œæ¬ç§»ä¹‹åŽæœ‰9ä¸ªè¿žé€šåŒºåŸŸ   
+    test = (abs(four) >= max(abs(four(:)))/k);
+    [~,num_block] = bwlabel(test,4);
+    if(num_block ==9)
+        break;
+    else
+        k = k+step;
+    end
+end
+
+pos_a = get_interval(target_ff_shift);
+pos_r = get_interval(target_ff_shift.');
+
+% imä»£è¡¨æ‰¾åˆ°çš„è¾¹ç•Œç‚¹
+im = zeros(2*size_a,2*size_r);
+for az = 1:2*size_a
+    for rg = 1:2*size_r
+        im(az,pos_r(ceil(mod(az-0.1,size_a)))) = 1;
+        im(pos_a(ceil(mod(rg-0.1,size_r))),rg)=1;
+        im(az,size_r+pos_r(ceil(mod(az-0.1,size_a)))) = 1;
+        im(size_a+pos_a(ceil(mod(rg-0.1,size_r))),rg)=1;
+    end
+end
+% å°†è¾¹ç•Œç‚¹è¿žæŽ¥èµ·æ¥
+[~,num] = bwlabel(im,4);
+while(num >1)
+    im = bwmorph(im,'dilate');
+    [~,num] = bwlabel(im,4);
+end
+boundary = bwmorph(im,'thin',Inf);
+
+[L_final,~] = bwlabel(1-boundary,4);
+L_final = bwmorph(L_final==L_final(size_a+1,size_r+1),'close',Inf);
+
+L_all = L_final*1 + fftshift(L_final,1)*2 + fftshift(L_final,2)*3....
+        + fftshift(L_final)*4;
+L_all = circshift(L_all,max_a0,1);
+L_all = circshift(L_all,max_r0,2);  
+chose = [L_all(1,1),L_all(2*size_a,1),L_all(1,2*size_r),L_all(2*size_a,2*size_r)];
+chose = chose(chose~=0);
+tmp = repmat(target_ff,2,2).*(L_all == mode(chose));
+
+%% è¡¥é›¶
+N_fft_a = 2^nextpow2(ratio*size_a);
+N_fft_r = 2^nextpow2(ratio*size_r);
+
+target_ff_up = zeros(N_fft_a,N_fft_r);
+target_ff_up(1:size_a,1:size_r) = tmp(1:size_a,1:size_r);
+target_ff_up(N_fft_a-size_a+1:N_fft_a,1:size_r) = tmp(1+size_a:2*size_a,1:size_r);
+target_ff_up(1:size_a,N_fft_r-size_r+1:N_fft_r) = tmp(1:size_a,1+size_r:2*size_r);
+target_ff_up(N_fft_a-size_a+1:N_fft_a,N_fft_r-size_r+1:N_fft_r) = tmp(1+size_a:2*size_a,1+size_r:2*size_r);
+
+%% ifft
+image_upsample = ifft2(target_ff_up);
+if (show == 1)
+%     figure;subplot(231);imagesc(abs(target_ff));title('(a)åŽŸå§‹é¢‘è°±');
+%     subplot(232);imagesc(abs(repmat(target_ff,2,2)));title('(b)å¤åˆ¶åŽçš„é¢‘è°±');
+%     subplot(233);imagesc(abs(four));title('(c)æ¬ç§»ã€å¤åˆ¶åŽçš„é¢‘è°±');
+%     subplot(234);imagesc(abs(four.*L_final));title('(d)å–å‡ºçš„é¢‘è°±');
+%     subplot(235);imagesc(abs(tmp));title('(e)è¡¥é›¶ç»“æžœç¤ºæ„');
+%     subplot(236);imagesc(abs(image_upsample));title('(f)å‡é‡‡æ ·åŽçš„æ—¶åŸŸ');
+    figure;
+    subplot(121);imagesc(abs(target_ff));title('(a)åŽŸå§‹é¢‘è°±');
+    subplot(122);imagesc(abs(tmp));title('(b)è¡¥é›¶åŽçš„é¢‘è°±');
+end
+%% è·ç¦»å’Œæ–¹ä½å‰–é¢ï¼ˆç›´æŽ¥æˆªå–æ°´å¹³å’Œåž‚ç›´å‰–é¢ï¼‰
+% [az_cut,rg_cut] = find(abs(image_upsample) == max(abs(image_upsample(:))),1); % æœ€å¤§å€¼ç‚¹
+% signal_r = image_upsample(az_cut,:); % è·ç¦»å‰–é¢
+% quality_r = f_IRW_PSLR_ISLR(signal_r);
+% quality_r(1) = quality_r(1)*size_r/N_fft_r*delta_r_new;
+% signal_a = image_upsample(:,rg_cut); % æ–¹ä½å‰–é¢
+% quality_a = f_IRW_PSLR_ISLR(signal_a);
+% quality_a(1) = quality_a(1)*size_a/N_fft_a*delta_a_new;
+%% è·ç¦»å’Œæ–¹ä½å‰–é¢ï¼ˆé¼ æ ‡é€‰å–ï¼‰
+figure;imagesc(abs(image_upsample));
+[max_az,max_rg] = find(abs(image_upsample) == max(abs(image_upsample(:))),1);
+hold on;plot(max_rg,max_az,'r.');
+% ç¬¬ä¸€ä¸‹é€‰æ‹©è·ç¦»å‘å‰–é¢ï¼Œç¬¬äºŒä¸‹é€‰æ‹©æ–¹ä½å‘å‰–é¢
+[loc_rg,loc_az] = ginput(2);
+% è·ç¦»å‘
+k_r = (loc_az(1)-max_az)/(loc_rg(1)-max_rg);
+x_r = 1:N_fft_r;
+y_r = max_az + round(k_r*(x_r-max_rg));
+x_r = x_r(y_r>=1&y_r<=N_fft_a);
+y_r = y_r(y_r>=1&y_r<=N_fft_a);
+signal_r = image_upsample(sub2ind([N_fft_a,N_fft_r],y_r,x_r));
+quality_r = f_IRW_PSLR_ISLR(signal_r);
+delta_r_new = sqrt(delta_r^2+k_r^2*delta_a^2);
+quality_r(1) = quality_r(1)*size_r/N_fft_r*delta_r_new;
+disp(['è·ç¦»å‘åˆ†è¾¨çŽ‡:',num2str(quality_r(1)),'m']);
+disp(['è·ç¦»å‘å³°å€¼æ—ç“£æ¯”:',num2str(quality_r(2)),'dB']);
+disp(['è·ç¦»å‘ç§¯åˆ†æ—ç“£æ¯”:',num2str(quality_r(3)),'dB']);
+% æ–¹ä½å‘
+k_a = (loc_rg(2)-max_rg)/(loc_az(2)-max_az);
+y_a = 1:N_fft_a;
+x_a = max_rg + round(k_a*(y_a-max_az));
+y_a = y_a(x_a>=1&x_a<=N_fft_r);
+x_a = x_a(x_a>=1&x_a<=N_fft_r);
+signal_a = image_upsample(sub2ind([N_fft_a,N_fft_r],y_a,x_a));
+quality_a = f_IRW_PSLR_ISLR(signal_a);
+delta_a_new = sqrt(delta_a^2+k_a^2*delta_r^2);
+quality_a(1) = quality_a(1)*size_a/N_fft_a*delta_a_new;
+disp(['æ–¹ä½å‘åˆ†è¾¨çŽ‡:',num2str(quality_a(1)),'m']);
+disp(['æ–¹ä½å‘å³°å€¼æ—ç“£æ¯”:',num2str(quality_a(2)),'dB']);
+disp(['æ–¹ä½å‘ç§¯åˆ†æ—ç“£æ¯”:',num2str(quality_a(3)),'dB']);
+% ç”»çº¿ç¤ºæ„
+plot(x_r,y_r,'r',x_a,y_a,'r');
+hold off;
+%% ç”»å›¾
+xticks = 0:size_r/N_fft_r:size_r-size_r/N_fft_r;
+yticks = 0:size_a/N_fft_a:size_a-size_a/N_fft_a;
+x_r_ticks = (x_r-1)*size_r/N_fft_r;
+y_r_ticks = (y_r-1)*size_a/N_fft_a;
+x_a_ticks = (x_a-1)*size_r/N_fft_r;
+y_a_ticks = (y_a-1)*size_a/N_fft_a;
+figure;
+subplot(321);imagesc(xticks,yticks,abs(image_upsample));title('(a)æ”¾å¤§åŽçš„ç‚¹ç›®æ ‡');xlabel('è·ç¦»å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');
+hold on;plot(x_r_ticks,y_r_ticks,'r',x_a_ticks,y_a_ticks,'r');hold off;
+subplot(322);contour(xticks,yticks,abs(image_upsample),30);title('(b)æ”¾å¤§åŽçš„ç‚¹ç›®æ ‡ç­‰å€¼çº¿å›¾');set(gca,'YDir','reverse');xlabel('è·ç¦»å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');
+subplot(323);plot(x_r_ticks*delta_r_new,20*log10(abs(signal_r)/max(abs(signal_r(:)))));xlim([min(x_r_ticks*delta_r_new),max(x_r_ticks*delta_r_new)]);ylim([-35,0]);title('(c)è·ç¦»å‰–é¢å›¾');xlabel('è·ç¦»å‘(m)');ylabel('å¹…åº¦(dB)');
+subplot(324);plot(y_a_ticks*delta_a_new,20*log10(abs(signal_a)/max(abs(signal_a(:)))));xlim([min(y_a_ticks*delta_a_new),max(y_a_ticks*delta_a_new)]);ylim([-35,0]);title('(d)æ–¹ä½å‰–é¢å›¾');xlabel('æ–¹ä½å‘(m)');ylabel('å¹…åº¦(dB)');
+subplot(325);plot(x_r_ticks*delta_r_new,angle(signal_r)*180/pi);xlim([min(x_r_ticks*delta_r_new),max(x_r_ticks*delta_r_new)]);ylim([-200,200]);title('(e)è·ç¦»ç›¸ä½');xlabel('è·ç¦»å‘(m)');ylabel('ç›¸ä½(Â°)');
+subplot(326);plot(y_a_ticks*delta_a_new,angle(signal_a)*180/pi);xlim([min(y_a_ticks*delta_a_new),max(y_a_ticks*delta_a_new)]);ylim([-200,200]);title('(f)æ–¹ä½ç›¸ä½');xlabel('æ–¹ä½å‘(m)');ylabel('ç›¸ä½(Â°)');
 end

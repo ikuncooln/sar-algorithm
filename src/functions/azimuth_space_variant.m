@@ -1,67 +1,67 @@
-function [ S ] = azimuth_space_variant( moco_file, S,... 
-    lambda, f_etac, Vr, subaperture_num,...
-    near_range, range_sample_rate, PRF,...
-    azimuth_size, last_pulse_count)
-%RANGE_SPACE_VARIANT ·½Î»Ïò¿Õ±ä´¦Àí
-%   moco_file ÔË¶¯²¹³¥ÔªÊı¾İÎÄ¼şÃû£¨¼´Æ½Ì¨¹ì¼£ĞÅÏ¢£©
-%   S ´ı·½Î»¿Õ±äÏàÎ»²¹³¥µÄ¾àÀë¶àÆÕÀÕÓòĞÅºÅ
-%   lambda ²¨³¤
-%   f_etac ¶àÆÕÀÕÖĞĞÄÆµÂÊ
-%   Vr À×´ïÆ½Ì¨ÔË¶¯ËÙ¶È
-%   subaperture_num ×Ó¿×¾¶ÊıÁ¿
-%   near_range ×î½üµã×î½üĞ±¾à
-%   ref_range Ò»½×ÏàÎ»ÔË¶¯²¹³¥Ê±Ñ¡ÔñµÄ²Î¿¼¾àÀë
-%   range_sample_rate ¾àÀëÏò²ÉÑùÂÊ
-%   PRF ·½Î»²ÉÑùÂÊ
-%   azimuth_size ÓÃÓÚÀíÏë¹ì¼£ÄâºÏµÄ×ÜµÄ»Ø²¨¸öÊı
-%   last_pulse_count ÉÏ´ÎÒÑ¾­´¦Àí¹ıµÄÂö³å¸öÊı£¨ÓÃÓÚ×·¼ÓÊ½´¦Àí£©
-
-c = 299792458;
-Fr = range_sample_rate;
-Fa = PRF;
-delta_r = c/2/Fr;                           % ¾àÀëÏò²ÉÑù¼ä¾à
-[Naz, Nrg] = size(S);
-pulse_count = Naz;
-
-[ ~, MOCO_UNIT ] = read_mocodata( moco_file,azimuth_size );
-xi = reshape(MOCO_UNIT.forward, [], 1);
-yi = reshape(MOCO_UNIT.cross, [], 1);
-zi = reshape(MOCO_UNIT.height, [], 1);
-% ÄâºÏ³öÀíÏëº½¼£
-p = polyfit(xi, yi, 1);
-yi_ideal = polyval(p, xi);
-href = mean(zi(:)); % ÀíÏë²Î¿¼¸ß¶È
-% ½öĞè±£Áô±¾´Î´¦Àí²¿·ÖĞÅÏ¢
-idx = last_pulse_count+1:pulse_count;
-yi = yi(idx); zi = zi(idx);
-yi_ideal = yi_ideal(idx);
-R0 = near_range + (0:Nrg-1)*delta_r;
-% R1 = sqrt((sqrt(R0(:).^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
-% R1_grid = repmat(reshape(R1, Naz, 1), 1, Nrg);
-R1_grid = sqrt((sqrt(repmat(R0.^2, Naz, 1) - href^2)...
-    - repmat((yi-yi_ideal), 1, Nrg)).^2 + repmat(zi, 1, Nrg).^2);
-
-f_eta = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
-f_eta = (round((f_etac-f_eta)/Fa)*Fa+f_eta); 
-sub_width = ceil(Naz / subaperture_num);    % Ã¿¸ö×Ó¿×¾¶¶ÔÓ¦µÄÆµÓò¿í¶È
-for i = 1:subaperture_num
-    id_start = (i-1)*sub_width+1;
-    id_end = min(Naz, i*sub_width);
-    SUB = zeros(Naz, Nrg);
-    SUB(id_start:id_end, :) = S(id_start:id_end, :);               % ×Ó¿×¾¶¶ÔÓ¦ÆµÓòĞÅºÅ
-    sub_fc = f_eta(round((id_start+id_end)/2)); % ×Ó¿×¾¶¶ÔÓ¦ÖĞĞÄÆµÂÊ
-    sub_theta = asin(sub_fc*lambda/2/Vr);     % ¸Ã×Ó¿×¾¶ÔÚÊ±Óò¶ÔÓ¦Ğ±ÊÓ½Ç
-    sub = ifft(SUB);        %  ×Ó¿×¾¶¶ÔÓ¦Ê±ÓòĞÅºÅ
-    R0 = near_range + (0:Nrg-1)*delta_r;
-    sub_L = R0 * tan(sub_theta);    % ¸Ã×Ó¿×¾¶ÔÚÊ±ÓòËù¶ÔÓ¦·½Î»Î»ÖÃºÍÁã¶àÆÕÀÕÃæµÄ¾àÀë
-    sub_L_grid = repmat(sub_L, Naz, 1);
-    delta_Ra = sqrt(R1_grid.^2 + sub_L_grid.^2) -...
-        sqrt(repmat(R0, Naz,1).^2+sub_L_grid.^2); % ¼ÆËã¸Ã×Ó¿×¾¶Ëù¶ÔÓ¦·½Î»Î»ÖÃÉÏ
-                                                  %¸÷¸ö¾àÀëÃÅÉÏËù¶ÔÓ¦Ğ±¾àÎó²î
-    delta_Ra = delta_Ra - (R1_grid -repmat(R0, Naz,1)); % ¼õÈ¥²Î¿¼Î»ÖÃµÄĞ±¾àÎó²î
-    sub = sub.*exp(1j*4*pi*delta_Ra/lambda);    % ¶Ô¸Ã×Ó¿×¾¶½øĞĞÏàÎ»²¹³¥
-    SUB = fft(sub);
-    S(id_start:id_end, :) = SUB(id_start:id_end, :);
-end
-end
-
+function [ S ] = azimuth_space_variant( moco_file, S,... 
+    lambda, f_etac, Vr, subaperture_num,...
+    near_range, range_sample_rate, PRF,...
+    azimuth_size, last_pulse_count)
+%RANGE_SPACE_VARIANT æ–¹ä½å‘ç©ºå˜å¤„ç†
+%   moco_file è¿åŠ¨è¡¥å¿å…ƒæ•°æ®æ–‡ä»¶åï¼ˆå³å¹³å°è½¨è¿¹ä¿¡æ¯ï¼‰
+%   S å¾…æ–¹ä½ç©ºå˜ç›¸ä½è¡¥å¿çš„è·ç¦»å¤šæ™®å‹’åŸŸä¿¡å·
+%   lambda æ³¢é•¿
+%   f_etac å¤šæ™®å‹’ä¸­å¿ƒé¢‘ç‡
+%   Vr é›·è¾¾å¹³å°è¿åŠ¨é€Ÿåº¦
+%   subaperture_num å­å­”å¾„æ•°é‡
+%   near_range æœ€è¿‘ç‚¹æœ€è¿‘æ–œè·
+%   ref_range ä¸€é˜¶ç›¸ä½è¿åŠ¨è¡¥å¿æ—¶é€‰æ‹©çš„å‚è€ƒè·ç¦»
+%   range_sample_rate è·ç¦»å‘é‡‡æ ·ç‡
+%   PRF æ–¹ä½é‡‡æ ·ç‡
+%   azimuth_size ç”¨äºç†æƒ³è½¨è¿¹æ‹Ÿåˆçš„æ€»çš„å›æ³¢ä¸ªæ•°
+%   last_pulse_count ä¸Šæ¬¡å·²ç»å¤„ç†è¿‡çš„è„‰å†²ä¸ªæ•°ï¼ˆç”¨äºè¿½åŠ å¼å¤„ç†ï¼‰
+
+c = 299792458;
+Fr = range_sample_rate;
+Fa = PRF;
+delta_r = c/2/Fr;                           % è·ç¦»å‘é‡‡æ ·é—´è·
+[Naz, Nrg] = size(S);
+pulse_count = Naz;
+
+[ ~, MOCO_UNIT ] = read_mocodata( moco_file,azimuth_size );
+xi = reshape(MOCO_UNIT.forward, [], 1);
+yi = reshape(MOCO_UNIT.cross, [], 1);
+zi = reshape(MOCO_UNIT.height, [], 1);
+% æ‹Ÿåˆå‡ºç†æƒ³èˆªè¿¹
+p = polyfit(xi, yi, 1);
+yi_ideal = polyval(p, xi);
+href = mean(zi(:)); % ç†æƒ³å‚è€ƒé«˜åº¦
+% ä»…éœ€ä¿ç•™æœ¬æ¬¡å¤„ç†éƒ¨åˆ†ä¿¡æ¯
+idx = last_pulse_count+1:pulse_count;
+yi = yi(idx); zi = zi(idx);
+yi_ideal = yi_ideal(idx);
+R0 = near_range + (0:Nrg-1)*delta_r;
+% R1 = sqrt((sqrt(R0(:).^2-href^2) - (yi-yi_ideal)).^2 + zi.^2);
+% R1_grid = repmat(reshape(R1, Naz, 1), 1, Nrg);
+R1_grid = sqrt((sqrt(repmat(R0.^2, Naz, 1) - href^2)...
+    - repmat((yi-yi_ideal), 1, Nrg)).^2 + repmat(zi, 1, Nrg).^2);
+
+f_eta = (0:Fa/Naz:(Naz-1)*Fa/Naz).';                   
+f_eta = (round((f_etac-f_eta)/Fa)*Fa+f_eta); 
+sub_width = ceil(Naz / subaperture_num);    % æ¯ä¸ªå­å­”å¾„å¯¹åº”çš„é¢‘åŸŸå®½åº¦
+for i = 1:subaperture_num
+    id_start = (i-1)*sub_width+1;
+    id_end = min(Naz, i*sub_width);
+    SUB = zeros(Naz, Nrg);
+    SUB(id_start:id_end, :) = S(id_start:id_end, :);               % å­å­”å¾„å¯¹åº”é¢‘åŸŸä¿¡å·
+    sub_fc = f_eta(round((id_start+id_end)/2)); % å­å­”å¾„å¯¹åº”ä¸­å¿ƒé¢‘ç‡
+    sub_theta = asin(sub_fc*lambda/2/Vr);     % è¯¥å­å­”å¾„åœ¨æ—¶åŸŸå¯¹åº”æ–œè§†è§’
+    sub = ifft(SUB);        %  å­å­”å¾„å¯¹åº”æ—¶åŸŸä¿¡å·
+    R0 = near_range + (0:Nrg-1)*delta_r;
+    sub_L = R0 * tan(sub_theta);    % è¯¥å­å­”å¾„åœ¨æ—¶åŸŸæ‰€å¯¹åº”æ–¹ä½ä½ç½®å’Œé›¶å¤šæ™®å‹’é¢çš„è·ç¦»
+    sub_L_grid = repmat(sub_L, Naz, 1);
+    delta_Ra = sqrt(R1_grid.^2 + sub_L_grid.^2) -...
+        sqrt(repmat(R0, Naz,1).^2+sub_L_grid.^2); % è®¡ç®—è¯¥å­å­”å¾„æ‰€å¯¹åº”æ–¹ä½ä½ç½®ä¸Š
+                                                  %å„ä¸ªè·ç¦»é—¨ä¸Šæ‰€å¯¹åº”æ–œè·è¯¯å·®
+    delta_Ra = delta_Ra - (R1_grid -repmat(R0, Naz,1)); % å‡å»å‚è€ƒä½ç½®çš„æ–œè·è¯¯å·®
+    sub = sub.*exp(1j*4*pi*delta_Ra/lambda);    % å¯¹è¯¥å­å­”å¾„è¿›è¡Œç›¸ä½è¡¥å¿
+    SUB = fft(sub);
+    S(id_start:id_end, :) = SUB(id_start:id_end, :);
+end
+end
+

@@ -1,86 +1,86 @@
-function [  ] = fopec_rr( moco_file, ...
-    in_file, out_file, wave_length, near_range, range_sample_rate,...
-    range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB)
-%First Order Phase Error Compensation & Range Resample Ò»½×ÏàÎ»²¹³¥¾àÀëÏòÖØ²ÉÑù
-%   moco_file ÔË¶¯²¹³¥ÔªÊı¾İÎÄ¼şÃû£¨¼´Æ½Ì¨¹ì¼£ĞÅÏ¢£©
-%   in_file ´ı´¦ÀíSARÊı¾İÎÄ¼şÃû
-%   out_file ´¦Àí½á¹ûÊä³öÎÄ¼şÃû
-%   wave_length ÖĞĞÄ²¨³¤
-%   near_range ×î½üµã×î½üĞ±¾à
-%   range_sample_rate ¾àÀëÏò²ÉÑùÂÊ
-%   range_size Ã¿¸ö»Ø²¨ĞÅºÅ×ÜµÄ²ÉÑùµãÊı
-%   azimuth_size ÓÃÓÚÀíÏë¹ì¼£ÄâºÏµÄ×ÜµÄ»Ø²¨¸öÊı
-%   pulse_count ±¾´Î´¦ÀíÂö³å¸öÊı
-%   last_pulse_count ÉÏ´ÎÒÑ¾­´¦Àí¹ıµÄÂö³å¸öÊı£¨ÓÃÓÚ×·¼ÓÊ½´¦Àí£©
-%   MAX_MEM_GB ÄÚ´æ´óĞ¡ÏŞÖÆ£¨GB£©
-%   
-%   Note: µ÷ÓÃ´Ëº¯ÊıÏà±ÈÓÚ·Ö±ğµ÷ÓÃfirst_order_phase_error_compensation()ºÍ
-%   range_resample()º¯Êı¸ü¼Ó¸ßĞ§
-c = 299792458;
-% parameters convert
-MAX_MEM_GB = MAX_MEM_GB * 1024*1024*1024;   % 1´Î½ö´¦Àí²»³¬¹ı*GBÊı¾İ
-lambda = wave_length;
-f0 = c/lambda;
-Fr = range_sample_rate;
-Nrg = range_size;
-delta_r = c/2/Fr;                           % ¾àÀëÏò²ÉÑù¼ä¾à
-batch_size = floor(MAX_MEM_GB / 128 / range_size);    % Ã¿´Î´¦ÀíµÄÂö³åÊıÁ¿
-iter = ceil(pulse_count/batch_size);        % Ñ­»·´ÎÊı
-f_tau = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg);
-
-[ ~, MOCO_UNIT ] = read_mocodata( moco_file,azimuth_size );
-xi = reshape(MOCO_UNIT.forward, [], 1);
-yi = reshape(MOCO_UNIT.cross, [], 1);
-zi = reshape(MOCO_UNIT.height, [], 1);
-% ÄâºÏ³öÀíÏëº½¼£
-p = polyfit(xi, yi, 1);
-yi_ideal = polyval(p, xi);
-href = mean(zi(:)); % ÀíÏë²Î¿¼¸ß¶È
-% ½öĞè±£Áô±¾´Î´¦Àí²¿·ÖĞÅÏ¢
-idx = last_pulse_count+1:pulse_count;
-yi = yi(idx); zi = zi(idx);
-yi_ideal = yi_ideal(idx);
-
-% ¼ÆËãĞ±¾àÎó²î
-R0 = near_range + (0:Nrg-1)*delta_r;
-cos_alpha = href ./ R0;
-sin_alpha = sqrt(1-cos_alpha.^2);
-[cos_alpha_mtx, delta_y] = meshgrid(cos_alpha, yi-yi_ideal);
-[sin_alpha_mtx, delta_z] = meshgrid(sin_alpha, zi-href);
-
-delta_R = delta_z .* cos_alpha_mtx;
-clear delta_z cos_alpha_mtx;
-delta_R = delta_R + delta_y .* sin_alpha_mtx;
-clear delta_y sin_alpha_mtx
-
-%% ÔË¶¯²¹³¥
-current_pulse_count = last_pulse_count+1;
-write_data([], out_file, 0);    % ÏÈÇå¿Õ»ò½¨Á¢¸ÃÎÄ¼ş
-
-for k = 1:iter
-    bs = (last_pulse_count+pulse_count - current_pulse_count)+1;
-    if bs > batch_size
-        bs = batch_size;
-    end
-    
-    s0 = read_data(in_file, range_size, 1, current_pulse_count,...
-    bs, range_size);
-    current_pulse_count = current_pulse_count + bs;
-    % Ò»½×ÏàÎ»Îó²î²¹³¥
-    hc = exp(1j * 4 * pi * delta_R((k-1)*batch_size+(1:bs), :) / lambda);
-    s0 = s0 .* hc;
-    
-    % ¾àÀëÖØ²ÉÑù
-    s0 = fftshift(s0, 2);
-    S0 = fft(s0.').';
-    f = repmat(f_tau, bs, 1); 
-    hc = exp(1j * 4 * pi * ... % ÒªÈ¡¾àÀë²Î¿¼ÖĞĞÄÎ»ÖÃµÄdelta_R
-        repmat(delta_R((k-1)*batch_size+(1:bs), Nrg/2), 1, Nrg) .* f / c);
-    s1 = ifft((S0 .* hc).').';
-    s1 = ifftshift(s1, 2);
-    disp(['Ò»½×ÏàÎ»Îó²î²¹³¥¼°¾àÀëÏòÖØ²ÉÑùÖĞ£º', num2str(k/iter*100), '%']);
-    write_data(s1, out_file, 1);
-end
-
-end
-
+function [  ] = fopec_rr( moco_file, ...
+    in_file, out_file, wave_length, near_range, range_sample_rate,...
+    range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB)
+%First Order Phase Error Compensation & Range Resample ä¸€é˜¶ç›¸ä½è¡¥å¿è·ç¦»å‘é‡é‡‡æ ·
+%   moco_file è¿åŠ¨è¡¥å¿å…ƒæ•°æ®æ–‡ä»¶åï¼ˆå³å¹³å°è½¨è¿¹ä¿¡æ¯ï¼‰
+%   in_file å¾…å¤„ç†SARæ•°æ®æ–‡ä»¶å
+%   out_file å¤„ç†ç»“æœè¾“å‡ºæ–‡ä»¶å
+%   wave_length ä¸­å¿ƒæ³¢é•¿
+%   near_range æœ€è¿‘ç‚¹æœ€è¿‘æ–œè·
+%   range_sample_rate è·ç¦»å‘é‡‡æ ·ç‡
+%   range_size æ¯ä¸ªå›æ³¢ä¿¡å·æ€»çš„é‡‡æ ·ç‚¹æ•°
+%   azimuth_size ç”¨äºç†æƒ³è½¨è¿¹æ‹Ÿåˆçš„æ€»çš„å›æ³¢ä¸ªæ•°
+%   pulse_count æœ¬æ¬¡å¤„ç†è„‰å†²ä¸ªæ•°
+%   last_pulse_count ä¸Šæ¬¡å·²ç»å¤„ç†è¿‡çš„è„‰å†²ä¸ªæ•°ï¼ˆç”¨äºè¿½åŠ å¼å¤„ç†ï¼‰
+%   MAX_MEM_GB å†…å­˜å¤§å°é™åˆ¶ï¼ˆGBï¼‰
+%   
+%   Note: è°ƒç”¨æ­¤å‡½æ•°ç›¸æ¯”äºåˆ†åˆ«è°ƒç”¨first_order_phase_error_compensation()å’Œ
+%   range_resample()å‡½æ•°æ›´åŠ é«˜æ•ˆ
+c = 299792458;
+% parameters convert
+MAX_MEM_GB = MAX_MEM_GB * 1024*1024*1024;   % 1æ¬¡ä»…å¤„ç†ä¸è¶…è¿‡*GBæ•°æ®
+lambda = wave_length;
+f0 = c/lambda;
+Fr = range_sample_rate;
+Nrg = range_size;
+delta_r = c/2/Fr;                           % è·ç¦»å‘é‡‡æ ·é—´è·
+batch_size = floor(MAX_MEM_GB / 128 / range_size);    % æ¯æ¬¡å¤„ç†çš„è„‰å†²æ•°é‡
+iter = ceil(pulse_count/batch_size);        % å¾ªç¯æ¬¡æ•°
+f_tau = ifftshift((-Nrg/2:Nrg/2-1)*Fr/Nrg);
+
+[ ~, MOCO_UNIT ] = read_mocodata( moco_file,azimuth_size );
+xi = reshape(MOCO_UNIT.forward, [], 1);
+yi = reshape(MOCO_UNIT.cross, [], 1);
+zi = reshape(MOCO_UNIT.height, [], 1);
+% æ‹Ÿåˆå‡ºç†æƒ³èˆªè¿¹
+p = polyfit(xi, yi, 1);
+yi_ideal = polyval(p, xi);
+href = mean(zi(:)); % ç†æƒ³å‚è€ƒé«˜åº¦
+% ä»…éœ€ä¿ç•™æœ¬æ¬¡å¤„ç†éƒ¨åˆ†ä¿¡æ¯
+idx = last_pulse_count+1:pulse_count;
+yi = yi(idx); zi = zi(idx);
+yi_ideal = yi_ideal(idx);
+
+% è®¡ç®—æ–œè·è¯¯å·®
+R0 = near_range + (0:Nrg-1)*delta_r;
+cos_alpha = href ./ R0;
+sin_alpha = sqrt(1-cos_alpha.^2);
+[cos_alpha_mtx, delta_y] = meshgrid(cos_alpha, yi-yi_ideal);
+[sin_alpha_mtx, delta_z] = meshgrid(sin_alpha, zi-href);
+
+delta_R = delta_z .* cos_alpha_mtx;
+clear delta_z cos_alpha_mtx;
+delta_R = delta_R + delta_y .* sin_alpha_mtx;
+clear delta_y sin_alpha_mtx
+
+%% è¿åŠ¨è¡¥å¿
+current_pulse_count = last_pulse_count+1;
+write_data([], out_file, 0);    % å…ˆæ¸…ç©ºæˆ–å»ºç«‹è¯¥æ–‡ä»¶
+
+for k = 1:iter
+    bs = (last_pulse_count+pulse_count - current_pulse_count)+1;
+    if bs > batch_size
+        bs = batch_size;
+    end
+    
+    s0 = read_data(in_file, range_size, 1, current_pulse_count,...
+    bs, range_size);
+    current_pulse_count = current_pulse_count + bs;
+    % ä¸€é˜¶ç›¸ä½è¯¯å·®è¡¥å¿
+    hc = exp(1j * 4 * pi * delta_R((k-1)*batch_size+(1:bs), :) / lambda);
+    s0 = s0 .* hc;
+    
+    % è·ç¦»é‡é‡‡æ ·
+    s0 = fftshift(s0, 2);
+    S0 = fft(s0.').';
+    f = repmat(f_tau, bs, 1); 
+    hc = exp(1j * 4 * pi * ... % è¦å–è·ç¦»å‚è€ƒä¸­å¿ƒä½ç½®çš„delta_R
+        repmat(delta_R((k-1)*batch_size+(1:bs), Nrg/2), 1, Nrg) .* f / c);
+    s1 = ifft((S0 .* hc).').';
+    s1 = ifftshift(s1, 2);
+    disp(['ä¸€é˜¶ç›¸ä½è¯¯å·®è¡¥å¿åŠè·ç¦»å‘é‡é‡‡æ ·ä¸­ï¼š', num2str(k/iter*100), '%']);
+    write_data(s1, out_file, 1);
+end
+
+end
+

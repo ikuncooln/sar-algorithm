@@ -1,8 +1,8 @@
-function [ output_args ] = block_process( m, n, height, width, file_name, range_size )
-%BLOCK_PROCESS ¶ÔÍ¼Ïñ½øĞĞ·Ö¿é³ÉÏñ
-%   ½«Í¼Ïñ½øĞĞ¶şÎ¬Íø¸ñ»®·Ö£¬È»ºó·Ö¿é³ÉÏñ
-%   file_name Êı¾İËùÔÚÎÄ¼şÃû
-%   range_size Ã¿Ò»¸öÂö³åËù¶ÔÓ¦»Ø²¨ĞÅºÅ¸´²ÉÑùµãÊı£¨·ù¿í£©
-
-end
-
+function [ output_args ] = block_process( m, n, height, width, file_name, range_size )
+%BLOCK_PROCESS å¯¹å›¾åƒè¿›è¡Œåˆ†å—æˆåƒ
+%   å°†å›¾åƒè¿›è¡ŒäºŒç»´ç½‘æ ¼åˆ’åˆ†ï¼Œç„¶ååˆ†å—æˆåƒ
+%   file_name æ•°æ®æ‰€åœ¨æ–‡ä»¶å
+%   range_size æ¯ä¸€ä¸ªè„‰å†²æ‰€å¯¹åº”å›æ³¢ä¿¡å·å¤é‡‡æ ·ç‚¹æ•°ï¼ˆå¹…å®½ï¼‰
+
+end
+

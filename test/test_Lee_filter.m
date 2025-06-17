@@ -1,46 +1,46 @@
-
-
-% I ÊäÈë»Ò¶ÈÍ¼Ïñ[0,255]
-% img_Lee LeeÂË²¨ºóÍ¼Ïñ
-% Ä¿Ç°´Ëº¯ÊıÈÏÎªÊäÈëÍ¼Ïñ±ß½çÊÇÖÜÆÚÍØÕ¹µÄ£¬ĞèÒª½øÒ»²½ÍêÉÆ£¨²Î¿¼imfilterº¯Êı£©
-
-[height, width] = size(I);
-N = 7;                  % ÁÚÓò´°¿Ú´óĞ¡N*N
-N_half = floor(N/2);    % »¬´°°ë¾¶
-N_size = N*N;
-
-% prepare params
-gu = sum(I(:)) / (height*width);        % È«¾Ö¾ùÖµglobal mean
-gv = sum(sum(I.*I)) / (height*width) - gu*gu;   % È«¾Ö·½²îglobal variance
-if gu == 0
-    Cz2 = 1;
-else
-    Cz2 = gv / (gu*gu);
-end
-
-img_Lee = zeros(height, width);
-% filtering
-for m = 1:height
-    for n = 1:width
-        mm = -(N_half-1):N_half + m;
-        nn = -(N_half-1):N_half + n;
-        mm = mod(mm, height);
-        nn = mod(nn, width);
-        mm(mm==0) = height;
-        nn(nn==0) = width;
-        locval = I(mm, nn);
-        total = sum(locval(:));
-        u = total / N_size;             % mean
-        v = sum(sum(locval.*locval)) - u*u;   % variance
-        if(v == 0)
-            k = 0;
-        else
-            k = (v - u*u*Cz2) / (v * (1+Cz2));
-        end
-        
-        % caculate current filtered pixel value
-        img_Lee(m,n) = u + k*(I(m,n)-u);
-    end
-end
-        
+
+
+% I è¾“å…¥ç°åº¦å›¾åƒ[0,255]
+% img_Lee Leeæ»¤æ³¢åå›¾åƒ
+% ç›®å‰æ­¤å‡½æ•°è®¤ä¸ºè¾“å…¥å›¾åƒè¾¹ç•Œæ˜¯å‘¨æœŸæ‹“å±•çš„ï¼Œéœ€è¦è¿›ä¸€æ­¥å®Œå–„ï¼ˆå‚è€ƒimfilterå‡½æ•°ï¼‰
+
+[height, width] = size(I);
+N = 7;                  % é‚»åŸŸçª—å£å¤§å°N*N
+N_half = floor(N/2);    % æ»‘çª—åŠå¾„
+N_size = N*N;
+
+% prepare params
+gu = sum(I(:)) / (height*width);        % å…¨å±€å‡å€¼global mean
+gv = sum(sum(I.*I)) / (height*width) - gu*gu;   % å…¨å±€æ–¹å·®global variance
+if gu == 0
+    Cz2 = 1;
+else
+    Cz2 = gv / (gu*gu);
+end
+
+img_Lee = zeros(height, width);
+% filtering
+for m = 1:height
+    for n = 1:width
+        mm = -(N_half-1):N_half + m;
+        nn = -(N_half-1):N_half + n;
+        mm = mod(mm, height);
+        nn = mod(nn, width);
+        mm(mm==0) = height;
+        nn(nn==0) = width;
+        locval = I(mm, nn);
+        total = sum(locval(:));
+        u = total / N_size;             % mean
+        v = sum(sum(locval.*locval)) - u*u;   % variance
+        if(v == 0)
+            k = 0;
+        else
+            k = (v - u*u*Cz2) / (v * (1+Cz2));
+        end
+        
+        % caculate current filtered pixel value
+        img_Lee(m,n) = u + k*(I(m,n)-u);
+    end
+end
+        
         

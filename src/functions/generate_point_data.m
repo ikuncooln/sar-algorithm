@@ -1,159 +1,318 @@
 function [  s0, f_etac, delta_r, delta_a, center_R0, center_etac  ] = generate_point_data( parameters )
+
 %GENERATE_POINT_DATA generate SAR target raw data
+
 %   parameters is a struct (including kinds of simulation parameters as its
+
 %   properties.
+
 %   Tips:
+
 %       Please give a complete parameters struct.
+
 %       If parameters.NUM_TARGETS equals to zero, this function will
+
 %       display a scene, guiding you to set proper targets.
+
 %       
-%   ÀıÈç£º
-%         NUM_TARGETS = 3;    % ·ÂÕæµÄÄ¿±êÊıÎª3
-%         rs = [0, 0, 20];    % ¸÷Ä¿±ê¾àÀëÏò¾àÀë
-%         as = [-20, 0, -10]; % Ä¿±êÏà¶Ô·½Î»Ïò¾àÀë
+
+%   ä¾‹å¦‚ï¼š
+
+%         NUM_TARGETS = 3;    % ä»¿çœŸçš„ç›®æ ‡æ•°ä¸º3
+
+%         rs = [0, 0, 20];    % å„ç›®æ ‡è·ç¦»å‘è·ç¦»
+
+%         as = [-20, 0, -10]; % ç›®æ ‡ç›¸å¯¹æ–¹ä½å‘è·ç¦»
+
 %         parameters = struct(...
-%             'center_Rc', center_Rc,...          % ¾°ÖĞĞÄĞ±¾à
-%             'theta_rc_deg', theta_rc_deg,...    % Ğ±ÊÓ½Ç
-%             'Nrg', Nrg,...                      % ¾àÀëÏò²ÉÑùµãÊı
-%             'Naz', Naz,...                      % ·½Î»Ïò²ÉÑùµãÊı
-%             'Vr', Vr,...                        % ÔØ»úËÙ¶È
-%             'f0', f0,...                        % ÔØ²¨ÆµÂÊ
-%             'Tr', Tr,...                        % ·¢ÉäÂö³å¿í¶È
-%             'Kr', Kr,...                        % ·¢ÉäÂö³åµ÷ÆµÂÊ
-%             'BW_dop', BW_dop,...                % ¶àÆÕÀÕ´ø¿í
-%             'alpha_os_r', alpha_os_r,...        % ¾àÀëÏò¹ı²ÉÑùÂÊ
-%             'alpha_os_a', alpha_os_a,...        % ·½Î»Ïò¹ı²ÉÑùÂÊ
-%             'NUM_TARGETS', NUM_TARGETS,...      % µãÄ¿±êÊıÁ¿
-%             'rs', rs,...                        % µãÄ¿±ê¾àÀëÏò×ø±ê£¨m£©
-%             'as', as...                         % µãÄ¿±ê·½Î»Ïò×ø±ê£¨m£©
+
+%             'center_Rc', center_Rc,...          % æ™¯ä¸­å¿ƒæ–œè·
+
+%             'theta_rc_deg', theta_rc_deg,...    % æ–œè§†è§’
+
+%             'Nrg', Nrg,...                      % è·ç¦»å‘é‡‡æ ·ç‚¹æ•°
+
+%             'Naz', Naz,...                      % æ–¹ä½å‘é‡‡æ ·ç‚¹æ•°
+
+%             'Vr', Vr,...                        % è½½æœºé€Ÿåº¦
+
+%             'f0', f0,...                        % è½½æ³¢é¢‘ç‡
+
+%             'Tr', Tr,...                        % å‘å°„è„‰å†²å®½åº¦
+
+%             'Kr', Kr,...                        % å‘å°„è„‰å†²è°ƒé¢‘ç‡
+
+%             'BW_dop', BW_dop,...                % å¤šæ™®å‹’å¸¦å®½
+
+%             'alpha_os_r', alpha_os_r,...        % è·ç¦»å‘è¿‡é‡‡æ ·ç‡
+
+%             'alpha_os_a', alpha_os_a,...        % æ–¹ä½å‘è¿‡é‡‡æ ·ç‡
+
+%             'NUM_TARGETS', NUM_TARGETS,...      % ç‚¹ç›®æ ‡æ•°é‡
+
+%             'rs', rs,...                        % ç‚¹ç›®æ ‡è·ç¦»å‘åæ ‡ï¼ˆmï¼‰
+
+%             'as', as...                         % ç‚¹ç›®æ ‡æ–¹ä½å‘åæ ‡ï¼ˆmï¼‰
+
 %         );
+
 %         [ s0, f_etac, delta_r, delta_a, center_R0, center_Rc ] = generate_point_data(parameters);
+
 %
-%   ·µ»ØÖµ:
-%   s0 ·ÂÕæ»Ø²¨ĞÅºÅ¾ØÕó
-%   f_etac ĞÅºÅ¶àÆÕÀÕÖĞĞÄÆµÂÊ
-%   delta_r Êı¾İ¾àÀëÏò²ÉÑù¼ä¾à£¨m£©
-%   delta_a Êı¾İ·½Î»²ÉÑù¼ä¾à£¨m£©
-%   center_R0 ¾°ÖĞĞÄµã×î½üĞ±¾à
-%   center_Rc ¾°ÖĞĞÄ²¨ÊøÖĞĞÄ´©Ô½Ê±¿ÌĞ±¾à
+
+%   è¿”å›å€¼:
+
+%   s0 ä»¿çœŸå›æ³¢ä¿¡å·çŸ©é˜µ
+
+%   f_etac ä¿¡å·å¤šæ™®å‹’ä¸­å¿ƒé¢‘ç‡
+
+%   delta_r æ•°æ®è·ç¦»å‘é‡‡æ ·é—´è·ï¼ˆmï¼‰
+
+%   delta_a æ•°æ®æ–¹ä½é‡‡æ ·é—´è·ï¼ˆmï¼‰
+
+%   center_R0 æ™¯ä¸­å¿ƒç‚¹æœ€è¿‘æ–œè·
+
+%   center_Rc æ™¯ä¸­å¿ƒæ³¢æŸä¸­å¿ƒç©¿è¶Šæ—¶åˆ»æ–œè·
+
+
 
 % parse the parameters
-center_Rc = parameters.center_Rc;   % ¾°ÖĞĞÄµã²¨Êø´©Ô½Ê±¿ÌĞ±¾à
+
+center_Rc = parameters.center_Rc;   % æ™¯ä¸­å¿ƒç‚¹æ³¢æŸç©¿è¶Šæ—¶åˆ»æ–œè·
+
 theta_rc = parameters.theta_rc_deg * pi / 180;
+
 Nrg = parameters.Nrg;
+
 Naz = parameters.Naz;
+
 Vr = parameters.Vr;
+
 f0 = parameters.f0;
+
 Tr = parameters.Tr;
+
 Kr = parameters.Kr;
+
 BW_dop = parameters.BW_dop;
+
 alpha_os_r = parameters.alpha_os_r;
+
 alpha_os_a = parameters.alpha_os_a;
 
+
+
 % targets info
+
 NUM_TARGETS = parameters.NUM_TARGETS;
+
 rs = parameters.rs;
+
 as = parameters.as;
 
+
+
 % default parameters
+
 c = 299792458;    % light speed
 
-% derived parameters
-Vs = Vr;
-Vg = Vr;
-lambda = c / f0;
-center_R0 = center_Rc * cos(theta_rc);          % ¾°ÖĞĞÄµã×î¶ÌĞ±¾à
-center_etac = - center_Rc * sin(theta_rc) / Vr; % ¾°ÖĞĞÄµã¶ÔÓ¦µÄÏà¶Ô²¨ÊøÖĞĞÄ´©Ô½Ê±¿Ì;
-La = 0.886 * 2 * Vs * cos(theta_rc) / BW_dop;   % ÌìÏß¿×¾¶³¤¶È
-beta_bw = 0.886 * lambda / La;                  % we suppose
-Fr = Tr * Kr * alpha_os_r;  % ¾àÀë²ÉÑùÂÊ
-Fa = BW_dop * alpha_os_a;   % Âö³åÖØ¸´ÆµÂÊ
-delta_r = c/2/Fr;           % ¾àÀëÏò²ÉÑù¼ä¾à£¨SARĞÅºÅ¿Õ¼ä£©
-delta_a = Vr / Fa;          % ·½Î»Ïò²ÉÑù¼ä¾à
-% not used by generating the signal, and they will be returned directly for
-% the user
-f_etac = 2 * Vr * sin(theta_rc) / lambda; % ¶àÆÕÀÕÖĞĞÄÆµÂÊ
 
-% ¹Û²âÊ±¼äÖáÇø¼äÈ·¶¨
+
+% derived parameters
+
+Vs = Vr;
+
+Vg = Vr;
+
+lambda = c / f0;
+
+center_R0 = center_Rc * cos(theta_rc);          % æ™¯ä¸­å¿ƒç‚¹æœ€çŸ­æ–œè·
+
+center_etac = - center_Rc * sin(theta_rc) / Vr; % æ™¯ä¸­å¿ƒç‚¹å¯¹åº”çš„ç›¸å¯¹æ³¢æŸä¸­å¿ƒç©¿è¶Šæ—¶åˆ»;
+
+La = 0.886 * 2 * Vs * cos(theta_rc) / BW_dop;   % å¤©çº¿å­”å¾„é•¿åº¦
+
+beta_bw = 0.886 * lambda / La;                  % we suppose
+
+Fr = Tr * Kr * alpha_os_r;  % è·ç¦»é‡‡æ ·ç‡
+
+Fa = BW_dop * alpha_os_a;   % è„‰å†²é‡å¤é¢‘ç‡
+
+delta_r = c/2/Fr;           % è·ç¦»å‘é‡‡æ ·é—´è·ï¼ˆSARä¿¡å·ç©ºé—´ï¼‰
+
+delta_a = Vr / Fa;          % æ–¹ä½å‘é‡‡æ ·é—´è·
+
+% not used by generating the signal, and they will be returned directly for
+
+% the user
+
+f_etac = 2 * Vr * sin(theta_rc) / lambda; % å¤šæ™®å‹’ä¸­å¿ƒé¢‘ç‡
+
+
+
+% è§‚æµ‹æ—¶é—´è½´åŒºé—´ç¡®å®š
+
 tau0 = 2 * center_Rc / c;
+
 eta0 = center_etac;
+
 tau = ((-Nrg / 2) : (Nrg / 2 - 1)) / Fr + tau0;
+
 eta = ((-Naz / 2 : Naz / 2 - 1)) / Fa + eta0;
 
+
+
 %##########################################################################
-% ÔÚ´ËÌ½¾¿¿ÉÒÔÉèÖÃµÄµãÄ¿±ê×ø±êÈ¡Öµ·¶Î§
-% SARÔ­Ê¼ĞÅºÅ¿Õ¼äµÄ¾àÀëÏòºÍ·½Î»ÏòÊ±¼ä¿í¶È
+
+% åœ¨æ­¤æ¢ç©¶å¯ä»¥è®¾ç½®çš„ç‚¹ç›®æ ‡åæ ‡å–å€¼èŒƒå›´
+
+% SARåŸå§‹ä¿¡å·ç©ºé—´çš„è·ç¦»å‘å’Œæ–¹ä½å‘æ—¶é—´å®½åº¦
+
 tau_w = tau(end) - tau(1);
+
 eta_h = eta(end) - eta(1);
-% ÔÊĞíµÄĞ±¾à×ø±ê·¶Î§
-% ÓÃlinspaceÓĞÎÊÌâ£¬ÈÔĞèÓÅ»¯£¬²Î¿¼extra/better_generate_time_freq_axis.m
-r_w = linspace(-(tau_w/2-Tr/2), (tau_w/2-Tr/2), Nrg) * c / 2 * cos(theta_rc); % -Tp/2ÊÇÒòÎª¿¼ÂÇÁËÂö³å¿í¶È
-% Ğ±ÊÓ½ÇÊ¹µÃ²»Í¬Ğ±¾à´¦Ä¿±êµãÔÊĞíµÄ·½Î»Î»ÖÃ²»Í¬(1)
+
+% å…è®¸çš„æ–œè·åæ ‡èŒƒå›´
+
+% ç”¨linspaceæœ‰é—®é¢˜ï¼Œä»éœ€ä¼˜åŒ–ï¼Œå‚è€ƒextra/better_generate_time_freq_axis.m
+
+r_w = linspace(-(tau_w/2-Tr/2), (tau_w/2-Tr/2), Nrg) * c / 2 * cos(theta_rc); % -Tp/2æ˜¯å› ä¸ºè€ƒè™‘äº†è„‰å†²å®½åº¦
+
+% æ–œè§†è§’ä½¿å¾—ä¸åŒæ–œè·å¤„ç›®æ ‡ç‚¹å…è®¸çš„æ–¹ä½ä½ç½®ä¸åŒ(1)
+
 a_h_top = eta_h / 2 * Vg + r_w * tan(theta_rc);
+
 a_h_bottom = -eta_h / 2 * Vg + r_w * tan(theta_rc);
-% % ÍØ¿íetaÖá£¬ÒÔ±ã×îÖÕÄÜ³ÉÏñÈİÄÉËùÓĞµã£¨²»ÔÚ²Ù×÷£¨2£©Ö®ºó½øĞĞÊÇÒòÎªetaÖá»¹Òª×ã¹»¿íÈ·±£Ô­Ê¼ĞÅºÅÄÜ±»ÍêÈ«½ÓÊÕ£©
-% % ÒòÎªuserÒÑ¾­¶¨ºÃÁËNaz£¬ÎÒÃÇ¾Í²»ÒªÉÃ×Ô¸Ä±äÁË
+
+% % æ‹“å®½etaè½´ï¼Œä»¥ä¾¿æœ€ç»ˆèƒ½æˆåƒå®¹çº³æ‰€æœ‰ç‚¹ï¼ˆä¸åœ¨æ“ä½œï¼ˆ2ï¼‰ä¹‹åè¿›è¡Œæ˜¯å› ä¸ºetaè½´è¿˜è¦è¶³å¤Ÿå®½ç¡®ä¿åŸå§‹ä¿¡å·èƒ½è¢«å®Œå…¨æ¥æ”¶ï¼‰
+
+% % å› ä¸ºuserå·²ç»å®šå¥½äº†Nazï¼Œæˆ‘ä»¬å°±ä¸è¦æ“…è‡ªæ”¹å˜äº†
+
 % Naz = round((a_h_top(end)-a_h_bottom(1)) / interval_a);
+
 % Naz = ceil(Naz/2)*2;
+
 % % disp(['Naz2:', num2str(Naz)]);
+
 % eta = ((-Naz / 2 : Naz / 2 - 1)) / Fa + eta0;
-% Ğ±¾àµÄ²»Í¬Ê¹µÃ²»Í¬Ğ±¾à´¦Ä¿±êÊ±Óò£¨r-a£©ÄÜÁ¿¹ì¼£·½Î»Ïò³¤¶È²»Í¬(2)
+
+% æ–œè·çš„ä¸åŒä½¿å¾—ä¸åŒæ–œè·å¤„ç›®æ ‡æ—¶åŸŸï¼ˆr-aï¼‰èƒ½é‡è½¨è¿¹æ–¹ä½å‘é•¿åº¦ä¸åŒ(2)
+
 a_h_top = a_h_top - (r_w + center_R0) / cos(theta_rc) * beta_bw / 2;
+
 a_h_bottom = a_h_bottom + (r_w + center_R0) / cos(theta_rc) * beta_bw / 2;
 
-% ÏÔÊ¾ÄÜ·ÅÖÃµÄÄ¿±êµãµÄ·¶Î§
+
+
+% æ˜¾ç¤ºèƒ½æ”¾ç½®çš„ç›®æ ‡ç‚¹çš„èŒƒå›´
+
 figure;
+
 plot(r_w, a_h_top, 'r-');
+
 hold on;
+
 plot(r_w, a_h_bottom, 'r-');
+
 line([r_w(1); r_w(1)], [a_h_bottom(1); a_h_top(1)], 'color', 'r');
+
 line([r_w(end); r_w(end)], [a_h_bottom(end); a_h_top(end)], 'color', 'r');
-xlabel('Ïà¶Ô¾°ÖĞĞÄĞ±¾àÏòr£¨m£©');ylabel('·½Î»Ïò£¨m£©');
+
+xlabel('ç›¸å¯¹æ™¯ä¸­å¿ƒæ–œè·å‘rï¼ˆmï¼‰');ylabel('æ–¹ä½å‘ï¼ˆmï¼‰');
+
 set(gca, 'YDir', 'reverse');
+
 grid on;
 
+
+
 if NUM_TARGETS == 0
+
     % just want to know the coordiante range of target we can set
-    suptitle('Ğ±¾à-·½Î»Æ½ÃæÏÂÄ¿±êµã¿ÉÉèÖÃ³¡¾°×ø±ê·¶Î§Ê¾ÒâÍ¼');
+
+    sgtitle('æ–œè·-æ–¹ä½å¹³é¢ä¸‹ç›®æ ‡ç‚¹å¯è®¾ç½®åœºæ™¯åæ ‡èŒƒå›´ç¤ºæ„å›¾');
+
     s0 = [];
+
     hold off;
+
     return;
+
 else
-    suptitle('Ğ±¾à-·½Î»Æ½ÃæÏÂÄ¿±êµãÉèÖÃ³¡¾°Ê¾ÒâÍ¼');
+
+    sgtitle('æ–œè·-æ–¹ä½å¹³é¢ä¸‹ç›®æ ‡ç‚¹è®¾ç½®åœºæ™¯ç¤ºæ„å›¾');
+
     plot(rs, as, '*');
+
     hold off;
+
 end
+
+
 
 %##########################################################################
-% ¼ÆËã¸÷Ä¿±êµãµÄ×î½üĞ±¾à
+
+% è®¡ç®—å„ç›®æ ‡ç‚¹çš„æœ€è¿‘æ–œè·
+
 R0s = center_R0 + rs;
-% ¼ÆËã¸÷Ä¿±êµãµÄ¾ø¶ÔÁã¶àÆÕÀÕÊ±¿Ì
+
+% è®¡ç®—å„ç›®æ ‡ç‚¹çš„ç»å¯¹é›¶å¤šæ™®å‹’æ—¶åˆ»
+
 eta_0s = as / Vr;
-% ¼ÆËã¸÷Ä¿±êµãµÄ¾ø¶Ô¶àÆÕÀÕÖĞĞÄÊ±¿Ì
+
+% è®¡ç®—å„ç›®æ ‡ç‚¹çš„ç»å¯¹å¤šæ™®å‹’ä¸­å¿ƒæ—¶åˆ»
+
 eta_cs = eta_0s + center_etac - rs * tan(theta_rc) / Vr;
 
-%% 3. ¹¹ÔìÀ×´ïÔ­Ê¼Êı¾İ
-% Ê±¼ä×ø±êÍø¸ñ
+
+
+%% 3. æ„é€ é›·è¾¾åŸå§‹æ•°æ®
+
+% æ—¶é—´åæ ‡ç½‘æ ¼
+
 [tau_mtx, eta_mtx] = meshgrid(tau, eta);
 
-% ¼ÆËãÄ¿±êµãË²Ê±Ğ±¾à£¨Ëæ·½Î»Ê±¼ä±ä»¯£©
-% ×¢£ºetaY-eta_0s(i)ÎªÄ¿±êµãÏà¶Ô¸÷×ÔÁã¶àÆÕÀÕÊ±¿ÌµÄ·½Î»ÏòÊ±¼äeta
+
+
+% è®¡ç®—ç›®æ ‡ç‚¹ç¬æ—¶æ–œè·ï¼ˆéšæ–¹ä½æ—¶é—´å˜åŒ–ï¼‰
+
+% æ³¨ï¼šetaY-eta_0s(i)ä¸ºç›®æ ‡ç‚¹ç›¸å¯¹å„è‡ªé›¶å¤šæ™®å‹’æ—¶åˆ»çš„æ–¹ä½å‘æ—¶é—´eta
+
 R_eta = zeros(NUM_TARGETS, Naz, Nrg);
+
 for i = 1:NUM_TARGETS
+
     R_eta(i, :, :) = sqrt((R0s(i)^2 + Vr^2 * (eta_mtx - eta_0s(i)).^2 ));
+
 end
 
+
+
 A0 = 1;
+
 s0 = zeros(Naz, Nrg);
+
 for i = 1:NUM_TARGETS
-    % °üÂç
+
+    % åŒ…ç»œ
+
     w_r = (abs(tau_mtx - 2 * reshape(R_eta(i, :, :), Naz, Nrg) / c) <= Tr / 2);
+
     w_a = sinc(0.886 / beta_bw * atan(Vg * (eta_mtx - eta_cs(i)) / R0s(i))).^2;
-    % ÏàÎ»
+
+    % ç›¸ä½
+
     theta1 = -4 * pi * f0 * reshape(R_eta(i, :, :), Naz, Nrg) / c;
+
     theta2 = pi * Kr * (tau_mtx - 2 * reshape(R_eta(i, :, :), Naz, Nrg) / c).^2;
-    % ĞÅºÅ¶àµãÀÛ¼Ó
+
+    % ä¿¡å·å¤šç‚¹ç´¯åŠ 
+
     s0 = s0 + A0 * w_r .* w_a .* exp(1j*theta1) .* exp(1j*theta2);
+
 end
+
 end
+
+
 

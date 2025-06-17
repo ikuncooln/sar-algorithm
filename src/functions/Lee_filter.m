@@ -1,59 +1,59 @@
-function [ img_Lee ] = Lee_filter( I )
-%LEE_FILTER ¶ÔÍ¼Ïñ½øÐÐLeeÂË²¨
-% I ÊäÈë»Ò¶ÈÍ¼Ïñ[0,255]
-% img_Lee LeeÂË²¨ºóÍ¼Ïñ
-% Ä¿Ç°´Ëº¯ÊýÈÏÎªÊäÈëÍ¼Ïñ±ß½çÊÇÖÜÆÚÍØÕ¹µÄ£¬ÐèÒª½øÒ»²½ÍêÉÆ£¨²Î¿¼imfilterº¯Êý£©
-
-[height, width] = size(I);
-I = double(I);          % ±ÜÃâ¼ÆËãÊ±ÀàÐÍÒç³ö
-N = 7;                  % ÁÚÓò´°¿Ú´óÐ¡N*N
-N_half = floor(N/2);    % »¬´°°ë¾¶
-N_size = N*N;
-
-% prepare params
-gu = sum(I(:)) / (height*width);        % È«¾Ö¾ùÖµglobal mean
-gv = sum(sum(I.*I)) / (height*width) - gu*gu;   % È«¾Ö·½²îglobal variance
-if gu == 0
-    Cz2 = 1;
-else
-    Cz2 = gv / (gu*gu);
-end
-
-img_Lee = zeros(height, width);
-slice = -(N_half-1):N_half;
-mbound = height-N_half;
-nbound = width-N_half;
-% filtering
-hwait=waitbar(0,'Lee filtering, please wait>>>>>>>>');
-for m = 1:height
-    for n = 1:width
-        mm = slice + m;
-        nn = slice + n;
-        if m < N_half || m > mbound
-            mm = mod(mm, height);
-            mm(mm==0) = height;
-        end
-        if n < N_half || n > nbound
-            nn = mod(nn, width);
-            nn(nn==0) = width;
-        end
-        locval = I(mm, nn);
-        u = mean(locval(:));    % mean
-        sqrtv = std(locval(:)); 
-        v = sqrtv * sqrtv;
-        if(v == 0)
-            k = 1;
-        else
-            k = (v - u*u*Cz2) / (v * (1+Cz2));
-        end
-        
-        % caculate current filtered pixel value
-        img_Lee(m,n) = u + k*(I(m,n)-u);
-    end
-    waitbar(m/height,hwait,['Lee filtering: ', num2str(m/height*100), '%']);
-end
-close(hwait);
-
-img_Lee = uint8(img_Lee);
-end
-
+function [ img_Lee ] = Lee_filter( I )
+%LEE_FILTER å¯¹å›¾åƒè¿›è¡ŒLeeæ»¤æ³¢
+% I è¾“å…¥ç°åº¦å›¾åƒ[0,255]
+% img_Lee Leeæ»¤æ³¢åŽå›¾åƒ
+% ç›®å‰æ­¤å‡½æ•°è®¤ä¸ºè¾“å…¥å›¾åƒè¾¹ç•Œæ˜¯å‘¨æœŸæ‹“å±•çš„ï¼Œéœ€è¦è¿›ä¸€æ­¥å®Œå–„ï¼ˆå‚è€ƒimfilterå‡½æ•°ï¼‰
+
+[height, width] = size(I);
+I = double(I);          % é¿å…è®¡ç®—æ—¶ç±»åž‹æº¢å‡º
+N = 7;                  % é‚»åŸŸçª—å£å¤§å°N*N
+N_half = floor(N/2);    % æ»‘çª—åŠå¾„
+N_size = N*N;
+
+% prepare params
+gu = sum(I(:)) / (height*width);        % å…¨å±€å‡å€¼global mean
+gv = sum(sum(I.*I)) / (height*width) - gu*gu;   % å…¨å±€æ–¹å·®global variance
+if gu == 0
+    Cz2 = 1;
+else
+    Cz2 = gv / (gu*gu);
+end
+
+img_Lee = zeros(height, width);
+slice = -(N_half-1):N_half;
+mbound = height-N_half;
+nbound = width-N_half;
+% filtering
+hwait=waitbar(0,'Lee filtering, please wait>>>>>>>>');
+for m = 1:height
+    for n = 1:width
+        mm = slice + m;
+        nn = slice + n;
+        if m < N_half || m > mbound
+            mm = mod(mm, height);
+            mm(mm==0) = height;
+        end
+        if n < N_half || n > nbound
+            nn = mod(nn, width);
+            nn(nn==0) = width;
+        end
+        locval = I(mm, nn);
+        u = mean(locval(:));    % mean
+        sqrtv = std(locval(:)); 
+        v = sqrtv * sqrtv;
+        if(v == 0)
+            k = 1;
+        else
+            k = (v - u*u*Cz2) / (v * (1+Cz2));
+        end
+        
+        % caculate current filtered pixel value
+        img_Lee(m,n) = u + k*(I(m,n)-u);
+    end
+    waitbar(m/height,hwait,['Lee filtering: ', num2str(m/height*100), '%']);
+end
+close(hwait);
+
+img_Lee = uint8(img_Lee);
+end
+

@@ -1,121 +1,121 @@
-close all; clear;
-
-%% basic parameters
-moco_file = 'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\mocodata.dat';
-file1 = 'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\data_before_moco.dat';
-file2 = 'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\data_after_1th_phase_compensation.dat';
-file3 = 'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\data_after_range_resample.dat';
-file4 = 'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\data_after_azimuth_resample.dat';
-
-% moco_file = 'E:\Ñ§Ğ£\ÑĞÒ»ÏÂ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\h3\ÔË¶¯²¹³¥Êı¾İ\mocodata.dat';
-% file1 = 'E:\Ñ§Ğ£\ÑĞÒ»ÏÂ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\h3\ÔË¶¯²¹³¥Êı¾İ\data_before_moco.dat';
-% file2 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_1th_phase_compensation.dat';
-% file3 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_range_resample.dat';
-% file4 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_azimuth_resample.dat';
-
-
-azimuth_angle = 0.04;
-wave_length = 0.03125;
-chirp_rate = 200000000000000.0;
-pulse_width = 2.4e-6;
-range_sample_rate = 548571428.571429;
-range_size = 16384;
-azimuth_size = 20480;
-near_range = 23306.25;
-velocity = 154.195864;
-prf = 533.330793;
-
-%% Ñ¡Ôñ´Ë´Î´¦ÀíµÄÊı¾İÁ¿´óĞ¡
-last_pulse_count = 0;
-pulse_count = 20480;
-MAX_MEM_GB = 1; % 1´Î½ö´¦Àí²»³¬¹ı1GBÊı¾İ
-
-%% Ò»½×ÏàÎ»Îó²î²¹³¥
-first_order_phase_error_compensation(moco_file,...
-    file1, file2, wave_length, near_range, range_sample_rate,...
-    range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
-
-%% ¾àÀëÖØ²ÉÑù´¦Àí/¾àÀëáã¶¯²¹³¥
-range_resample(moco_file,...
-    file2, file3, wave_length, near_range, range_sample_rate,...
-    range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
-
-%% ·½Î»ÖØ²ÉÑù´¦Àí
-azimuth_resample(moco_file, file3, file4,...
-    range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
-
-%% ³ÉÏñ¼ìÑé£¨ÔÚ³ÉÏñ¹ı³ÌÖĞ½øĞĞ¶ş½×ÔË¶¯²¹³¥ºÍ¿Õ±äÏàÎ»²¹³¥£©
-% ×ªµ½main.m
-% parameters
-% file_mocoedÎªÀÏÊ¦¸øµÄĞ£ÕıºóµÄÊı¾İ
-file_mocoed = 'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\data_after_moco.dat';
-data_file = file4;  % ÓÃÓÚ³ÉÏñµÄÎÄ¼ş
-azimuth_angle = 0.04;
-wave_length = 0.03125;
-chirp_rate = 200000000000000.0;
-pulse_width = 2.4e-6;
-range_sample_rate = 548571428.571429;
-range_size = 16384;
-azimuth_size = 20480;
-near_range = 23306.25;
-velocity = 154.195864;
-prf = 533.330793;
-% ³ÉÏñÎ»ÖÃÑ¡Ôñ
-x0 = 1; y0 =1;
-height = 20480; width = 16384;
-% height = 4096; width = 4096;
-
-% parameters convert
-c = 299792458;
-lambda = wave_length;
-f0 = c/lambda;
-Kr = chirp_rate;
-Vr = velocity;
-Fr = range_sample_rate;
-Fa = prf;
-theta_rc_deg = 0;
-delta_r = c/Fr/2;
-center_R0 = near_range + (x0-1+width/2)*delta_r;
-theta_bw = azimuth_angle;
-Tr = pulse_width;
-theta_rc = theta_rc_deg * pi / 180;
-Naz = height;
-Nrg = width;
-PRF = Fa;
-f_etac = 2 * Vr * sin(theta_rc) / lambda;
-
-disp('¿ªÊ¼³ÉÏñ...');
-s0 = read_data( data_file, range_size, x0, y0, height, width);
-disp('Êı¾İ¶ÁÈ¡Íê±Ï');
-% figure;imagesc(real(s0)); colormap('gray');
-
-% Ò»½×ÏàÎ»²¹³¥Ê±Ê¹ÓÃµÄ²Î¿¼¾àÀë
-ref_range = near_range + (Nrg/2)*delta_r;
-subaperture_num = 4;    % ×Ó¿×¾¶¸öÊı
-% delta_R = range_space_variant( moco_file,...
-%     near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
-%     width, x0-1, height, y0-1);
-s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0,moco_file, ref_range, subaperture_num, range_size, azimuth_size,x0-1, y0-1);
-% s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
-
-img = abs(s);
-% figure;imagesc(img); colormap('gray');
-disp([data_file, '-³ÉÏñÍê³É']);
-
-% 2%»Ò¶ÈÔöÇ¿
-values = sort(img(:),'ascend');
-theshold1 = values(round(0.02*Nrg*Naz));
-theshold2 = values(round(0.98*Nrg*Naz));
-img(img < theshold1) = theshold1;
-img(img > theshold2) = theshold2;
-img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
-figure;imagesc(img_uint8); colormap('gray');
-[~, data_name] = fileparts(data_file);
-title([data_name, '-³ÉÏñÍê³É']);
-
-
-% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_moco_4096.bmp');
-% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_before_moco_4096.bmp');
-% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_ref_4096.bmp');
-
-imwrite(img_uint8,'D:\ÑĞÒ»ÏÂ¿Î³Ì×ÊÁÏ\SARĞÅºÅ´¦ÀíÓëÔË¶¯²¹³¥\µÚÈı´Î´ó×÷Òµ\img_space_variant_full_subAperture=4.bmp');
+close all; clear;
+
+%% basic parameters
+moco_file = 'D:\ç ”ä¸€ä¸‹è¯¾ç¨‹èµ„æ–™\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\ç¬¬ä¸‰æ¬¡å¤§ä½œä¸š\mocodata.dat';
+file1 = 'D:\ç ”ä¸€ä¸‹è¯¾ç¨‹èµ„æ–™\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\ç¬¬ä¸‰æ¬¡å¤§ä½œä¸š\data_before_moco.dat';
+file2 = 'D:\ç ”ä¸€ä¸‹è¯¾ç¨‹èµ„æ–™\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\ç¬¬ä¸‰æ¬¡å¤§ä½œä¸š\data_after_1th_phase_compensation.dat';
+file3 = 'D:\ç ”ä¸€ä¸‹è¯¾ç¨‹èµ„æ–™\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\ç¬¬ä¸‰æ¬¡å¤§ä½œä¸š\data_after_range_resample.dat';
+file4 = 'D:\ç ”ä¸€ä¸‹è¯¾ç¨‹èµ„æ–™\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\ç¬¬ä¸‰æ¬¡å¤§ä½œä¸š\data_after_azimuth_resample.dat';
+
+% moco_file = 'E:\å­¦æ ¡\ç ”ä¸€ä¸‹\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\h3\è¿åŠ¨è¡¥å¿æ•°æ®\mocodata.dat';
+% file1 = 'E:\å­¦æ ¡\ç ”ä¸€ä¸‹\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\h3\è¿åŠ¨è¡¥å¿æ•°æ®\data_before_moco.dat';
+% file2 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_1th_phase_compensation.dat';
+% file3 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_range_resample.dat';
+% file4 = 'E:\zhaofei\repo\sar-algorithm\output\moco\data_after_azimuth_resample.dat';
+
+
+azimuth_angle = 0.04;
+wave_length = 0.03125;
+chirp_rate = 200000000000000.0;
+pulse_width = 2.4e-6;
+range_sample_rate = 548571428.571429;
+range_size = 16384;
+azimuth_size = 20480;
+near_range = 23306.25;
+velocity = 154.195864;
+prf = 533.330793;
+
+%% é€‰æ‹©æ­¤æ¬¡å¤„ç†çš„æ•°æ®é‡å¤§å°
+last_pulse_count = 0;
+pulse_count = 20480;
+MAX_MEM_GB = 1; % 1æ¬¡ä»…å¤„ç†ä¸è¶…è¿‡1GBæ•°æ®
+
+%% ä¸€é˜¶ç›¸ä½è¯¯å·®è¡¥å¿
+first_order_phase_error_compensation(moco_file,...
+    file1, file2, wave_length, near_range, range_sample_rate,...
+    range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
+
+%% è·ç¦»é‡é‡‡æ ·å¤„ç†/è·ç¦»å¾™åŠ¨è¡¥å¿
+range_resample(moco_file,...
+    file2, file3, wave_length, near_range, range_sample_rate,...
+    range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
+
+%% æ–¹ä½é‡é‡‡æ ·å¤„ç†
+azimuth_resample(moco_file, file3, file4,...
+    range_size, azimuth_size, pulse_count, last_pulse_count, MAX_MEM_GB);
+
+%% æˆåƒæ£€éªŒï¼ˆåœ¨æˆåƒè¿‡ç¨‹ä¸­è¿›è¡ŒäºŒé˜¶è¿åŠ¨è¡¥å¿å’Œç©ºå˜ç›¸ä½è¡¥å¿ï¼‰
+% è½¬åˆ°main.m
+% parameters
+% file_mocoedä¸ºè€å¸ˆç»™çš„æ ¡æ­£åçš„æ•°æ®
+file_mocoed = 'D:\ç ”ä¸€ä¸‹è¯¾ç¨‹èµ„æ–™\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\ç¬¬ä¸‰æ¬¡å¤§ä½œä¸š\data_after_moco.dat';
+data_file = file4;  % ç”¨äºæˆåƒçš„æ–‡ä»¶
+azimuth_angle = 0.04;
+wave_length = 0.03125;
+chirp_rate = 200000000000000.0;
+pulse_width = 2.4e-6;
+range_sample_rate = 548571428.571429;
+range_size = 16384;
+azimuth_size = 20480;
+near_range = 23306.25;
+velocity = 154.195864;
+prf = 533.330793;
+% æˆåƒä½ç½®é€‰æ‹©
+x0 = 1; y0 =1;
+height = 20480; width = 16384;
+% height = 4096; width = 4096;
+
+% parameters convert
+c = 299792458;
+lambda = wave_length;
+f0 = c/lambda;
+Kr = chirp_rate;
+Vr = velocity;
+Fr = range_sample_rate;
+Fa = prf;
+theta_rc_deg = 0;
+delta_r = c/Fr/2;
+center_R0 = near_range + (x0-1+width/2)*delta_r;
+theta_bw = azimuth_angle;
+Tr = pulse_width;
+theta_rc = theta_rc_deg * pi / 180;
+Naz = height;
+Nrg = width;
+PRF = Fa;
+f_etac = 2 * Vr * sin(theta_rc) / lambda;
+
+disp('å¼€å§‹æˆåƒ...');
+s0 = read_data( data_file, range_size, x0, y0, height, width);
+disp('æ•°æ®è¯»å–å®Œæ¯•');
+% figure;imagesc(real(s0)); colormap('gray');
+
+% ä¸€é˜¶ç›¸ä½è¡¥å¿æ—¶ä½¿ç”¨çš„å‚è€ƒè·ç¦»
+ref_range = near_range + (Nrg/2)*delta_r;
+subaperture_num = 4;    % å­å­”å¾„ä¸ªæ•°
+% delta_R = range_space_variant( moco_file,...
+%     near_range, ref_range, range_sample_rate, range_size, azimuth_size,... 
+%     width, x0-1, height, y0-1);
+s = CSA_moco(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0,moco_file, ref_range, subaperture_num, range_size, azimuth_size,x0-1, y0-1);
+% s = CSA(s0,theta_bw,lambda,Kr,Tr,Fr,theta_rc,Nrg,Naz,near_range,Vr,PRF,0);
+
+img = abs(s);
+% figure;imagesc(img); colormap('gray');
+disp([data_file, '-æˆåƒå®Œæˆ']);
+
+% 2%ç°åº¦å¢å¼º
+values = sort(img(:),'ascend');
+theshold1 = values(round(0.02*Nrg*Naz));
+theshold2 = values(round(0.98*Nrg*Naz));
+img(img < theshold1) = theshold1;
+img(img > theshold2) = theshold2;
+img_uint8 = uint8((img-min(img(:)))/(max(img(:))-min(img(:)))*255);
+figure;imagesc(img_uint8); colormap('gray');
+[~, data_name] = fileparts(data_file);
+title([data_name, '-æˆåƒå®Œæˆ']);
+
+
+% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_moco_4096.bmp');
+% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_before_moco_4096.bmp');
+% imwrite(img_uint8,'E:\zhaofei\repo\sar-algorithm\output\img_ref_4096.bmp');
+
+imwrite(img_uint8,'D:\ç ”ä¸€ä¸‹è¯¾ç¨‹èµ„æ–™\SARä¿¡å·å¤„ç†ä¸è¿åŠ¨è¡¥å¿\ç¬¬ä¸‰æ¬¡å¤§ä½œä¸š\img_space_variant_full_subAperture=4.bmp');

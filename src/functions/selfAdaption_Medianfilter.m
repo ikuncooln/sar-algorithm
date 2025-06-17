@@ -1,66 +1,66 @@
-function [ NEWimg ] = selfAdaption_Medianfilter( imgdata )
-%UNTITLED2 ´Ë´¦ÏÔÊ¾ÓĞ¹Ø´Ëº¯ÊıµÄÕªÒª
-%   ´Ë´¦ÏÔÊ¾ÏêÏ¸ËµÃ÷
-[rows,columns]=size(imgdata);
-n=5;%Éè¶¨´°¿Ú³ß´ç£¬Ä¬ÈÏÊÇn*nµÄ´°
-nmax=15;%×î´ó³ß´ç
-flag=0;
-%ÒÔÏÂµÄstart1ºÍstart2Éè¶¨£¬ÒÔ¼°min(j+(n-1)/2,columns)ÊÇÎªÁËÄÜ¹»ÂË³ıÍ¼Ïñ±ß¿òÉÏµÄÔëÉù¡£
-%¶¨Òåº¯ÊıAÎªA¹ı³Ì¡££¨Ğèµü´úµ÷ÓÃËùÒÔÁíĞ´º¯Êı£©¡£B¹ı³ÌÖ±½Ó·ÅÔÚÖ÷³ÌĞòelseifÖĞ¡£Êä³özmedµÄ¹ı³Ì·ÅÔÚelseÖĞ
-for i=1:rows
-    for j=1:columns
-         zij=imgdata(i,j);
-         if i-(n-1)/2<=0;
-             start1=1;
-             
-         else
-             start1=i-(n-1)/2;
-         end
-         if j-(n-1)/2<=0;
-             start2=1;
-             
-         else
-             start2=j-(n-1)/2;
-         end
-         [zmed,zmin,zmax]=getdata(imgdata(start1:min(i+(n-1)/2,rows),start2:min(j+(n-1)/2,columns)));
-         y=A(zmed,zmin,zmax);
-         if y==-1
-            while (flag==4)
-             n=n+2;
-             [zmed,zmin,zmax]=getdata(imgdata(start1:min(i+(n-1)/2,rows),start2:min(j+(n-1)/2,columns)));
-             y=A(zmed,zmin,zmax);
-             s=[y==-1, n<=nmax, n<2*i-1,n<2*j-1];
-             flag=sum(s);
-            end
-             if y==1
-                 B1=zij-zmin;
-                 B2=zij-zmax;
-                 if B1>0 && B2<0
-                     imgdata(i,j)=zij;
-                 else
-                     imgdata(i,j)=zmed;
-                 end
-             else
-                 imgdata(i,j)=zmed;
-             end
-         elseif y==1
-             B1=zij-zmin;
-             B2=zij-zmax;
-             if B1>0 && B2<0
-                 imgdata(i,j)=zij;
-             else
-                 imgdata(i,j)=zmed;
-             end
-         else
-             imgdata(i,j)=zmed;
-         end
-    end
-             
-end
-NEWimg=imgdata;
-% figure;
-% imshow(NEWimg);
-% title('×ÔÊÊÓ¦ÖĞÖµÂË²¨Æ÷');
-
-end
-
+function [ NEWimg ] = selfAdaption_Medianfilter( imgdata )
+%UNTITLED2 æ­¤å¤„æ˜¾ç¤ºæœ‰å…³æ­¤å‡½æ•°çš„æ‘˜è¦
+%   æ­¤å¤„æ˜¾ç¤ºè¯¦ç»†è¯´æ˜
+[rows,columns]=size(imgdata);
+n=5;%è®¾å®šçª—å£å°ºå¯¸ï¼Œé»˜è®¤æ˜¯n*nçš„çª—
+nmax=15;%æœ€å¤§å°ºå¯¸
+flag=0;
+%ä»¥ä¸‹çš„start1å’Œstart2è®¾å®šï¼Œä»¥åŠmin(j+(n-1)/2,columns)æ˜¯ä¸ºäº†èƒ½å¤Ÿæ»¤é™¤å›¾åƒè¾¹æ¡†ä¸Šçš„å™ªå£°ã€‚
+%å®šä¹‰å‡½æ•°Aä¸ºAè¿‡ç¨‹ã€‚ï¼ˆéœ€è¿­ä»£è°ƒç”¨æ‰€ä»¥å¦å†™å‡½æ•°ï¼‰ã€‚Bè¿‡ç¨‹ç›´æ¥æ”¾åœ¨ä¸»ç¨‹åºelseifä¸­ã€‚è¾“å‡ºzmedçš„è¿‡ç¨‹æ”¾åœ¨elseä¸­
+for i=1:rows
+    for j=1:columns
+         zij=imgdata(i,j);
+         if i-(n-1)/2<=0;
+             start1=1;
+             
+         else
+             start1=i-(n-1)/2;
+         end
+         if j-(n-1)/2<=0;
+             start2=1;
+             
+         else
+             start2=j-(n-1)/2;
+         end
+         [zmed,zmin,zmax]=getdata(imgdata(start1:min(i+(n-1)/2,rows),start2:min(j+(n-1)/2,columns)));
+         y=A(zmed,zmin,zmax);
+         if y==-1
+            while (flag==4)
+             n=n+2;
+             [zmed,zmin,zmax]=getdata(imgdata(start1:min(i+(n-1)/2,rows),start2:min(j+(n-1)/2,columns)));
+             y=A(zmed,zmin,zmax);
+             s=[y==-1, n<=nmax, n<2*i-1,n<2*j-1];
+             flag=sum(s);
+            end
+             if y==1
+                 B1=zij-zmin;
+                 B2=zij-zmax;
+                 if B1>0 && B2<0
+                     imgdata(i,j)=zij;
+                 else
+                     imgdata(i,j)=zmed;
+                 end
+             else
+                 imgdata(i,j)=zmed;
+             end
+         elseif y==1
+             B1=zij-zmin;
+             B2=zij-zmax;
+             if B1>0 && B2<0
+                 imgdata(i,j)=zij;
+             else
+                 imgdata(i,j)=zmed;
+             end
+         else
+             imgdata(i,j)=zmed;
+         end
+    end
+             
+end
+NEWimg=imgdata;
+% figure;
+% imshow(NEWimg);
+% title('è‡ªé€‚åº”ä¸­å€¼æ»¤æ³¢å™¨');
+
+end
+

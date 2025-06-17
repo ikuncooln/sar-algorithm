@@ -1,90 +1,90 @@
-close all;clear all;
-%% 1. ·ÂÕæ²ÎÊı (²Î¿¼ p142, table 6.1)
-center_Rc = 20e3;  % ¾°ÖĞĞÄĞ±¾à
-Vr = 150;       % µÈĞ§À×´ïËÙ¶È
-Tr = 2.5e-6;    % ·¢ÉäÂö³åÊ±¿í
-Kr = 40e12;     % ¾àÀëµ÷ÆµÂÊ
-f0 = 5.3e9;     % À×´ï¹¤×÷ÆµÂÊ
-BW_dop = 80;    % ¶àÆÕÀÕ´ø¿í
-Fr = 120e6;  % ¾àÀë²ÉÑùÂÊ
-Fa = 100;   % ·½Î»²ÉÑùÂÊ
-Naz = 256;  % ·½Î»Ïò²ÉÑùµãÊı£¨¾àÀëÏßÌõÊı£©
-Nrg = 3072;  % ¾àÀëÏò²ÉÑùµãÊı£¨¾àÀëÏß²ÉÑùµãÊı£©
-theta_rc_deg = 5; % µÍĞ±ÊÓ½Ç5¶È
-c = 299792458;    % ¹âËÙ
-
-% derived params
-lambda = c / f0;
-theta_rc = theta_rc_deg * pi / 180;
-Vs = Vr;
-Vg = Vr;
-Np = Tr * Fr;   % Âö³åĞòÁĞ³¤¶È£¨²ÉÑùµãÊı£©
-alpha_os_r = Fr / (Kr*Tr);
-alpha_os_a = Fa / BW_dop;
-
-%% 2. Éú³ÉÔ­Ê¼À×´ïÊı¾İ
-NUM_TARGETS = 7;    % ·ÂÕæµÄÄ¿±êÊı
-gap = 50 * 8;
-% gap = 25;
-rs = [-3, -2, -1, 0, 1, 2, 3]*gap;
-as = [-3, -2, -1, 0, 1, 2, 3]*gap*tan(theta_rc);
-parameters = struct(...
-    'center_Rc', center_Rc,...          % ¾°ÖĞĞÄĞ±¾à
-    'theta_rc_deg', theta_rc_deg,...    % Ğ±ÊÓ½Ç
-    'Nrg', Nrg,...                      % ¾àÀëÏò²ÉÑùµãÊı
-    'Naz', Naz,...                      % ·½Î»Ïò²ÉÑùµãÊı
-    'Vr', Vr,...                        % ÔØ»úËÙ¶È
-    'f0', f0,...                        % ÔØ²¨ÆµÂÊ
-    'Tr', Tr,...                        % ·¢ÉäÂö³å¿í¶È
-    'Kr', Kr,...                        % ·¢ÉäÂö³åµ÷ÆµÂÊ
-    'BW_dop', BW_dop,...                % ¶àÆÕÀÕ´ø¿í
-    'alpha_os_r', alpha_os_r,...        % ¾àÀëÏò¹ı²ÉÑùÂÊ
-    'alpha_os_a', alpha_os_a,...        % ·½Î»Ïò¹ı²ÉÑùÂÊ
-    'NUM_TARGETS', NUM_TARGETS,...      % µãÄ¿±êÊıÁ¿
-    'rs', rs,...                        % µãÄ¿±ê¾àÀëÏò×ø±ê£¨m£©
-    'as', as...                         % µãÄ¿±ê·½Î»Ïò×ø±ê£¨m£©
-);
-
-[ s0, f_etac, delta_r, delta_a, center_R0, center_Rc ] = generate_point_data(parameters);
-
-%% 3. ³ÉÏñ´¦Àí
-Rref = center_R0;
-s2 = wKA( s0, lambda, Kr, Vr, Fr, Fa, Rref, f_etac, Tr );
-
-
-%% show
-Vg = Vr;
-[Naz, Nrg] = size(s2);
-x = ((-Nrg / 2) : (Nrg / 2 - 1)) / Fr * c / 2;
-y = ((-Naz / 2 : Naz / 2 - 1)) / Fa * Vg;
-figure;
-imagesc(x, y, abs(s2));
-xlabel('¾àÀëÏò£¨m£©');ylabel('·½Î»Ïò£¨m£©');
-title('ÍêÕû´¦ÀíºóµÄÄ¿±ê');set(gca, 'YDir', 'normal');
-
-%% 4. µãÄ¿±ê·ÖÎö
-% ¼ÆËãÃ¿¸öµã³öÏÖÎ»ÖÃµÄË÷ÒıÖµ
-ns = round(rs/delta_r) + (Nrg/2 + 1);
-ms = round(as/delta_a) + (Naz/2 + 1);
-len = 16;
-
-figure; % ·Å´óÏÔÊ¾Ã¿¸öµãÄ¿±ê
-for i = 1:NUM_TARGETS
-    target = s2(ms(i)-len/2:ms(i)+len/2-1, ns(i)-len/2:ns(i)+len/2-1);
-    subplot(ceil(NUM_TARGETS/3), 3, i);
-    imagesc(abs(target));
-    xlabel('¾àÀëÏò£¨²ÉÑùµã£©');ylabel('·½Î»Ïò£¨²ÉÑùµã£©');ylabel('·½Î»Ïò£¨²ÉÑùµã£©');title(['Ä¿±ê', num2str(i)]);
-end
-
-% Éı²ÉÑù·ÖÎöµãÄ¿±êA£¨¼´µÚÒ»¸öµãÄ¿±ê£©
-p = 1;
-target = s2(ms(p)-len/2:ms(p)+len/2-1, ns(p)-len/2:ns(p)+len/2-1);
-[image_upsample,signal_r,quality_r,signal_a,quality_a] = f_point_analyse(target,delta_r,delta_a);
-
-BW_r= abs(Kr*Tr);
-La = 0.886 * 2 * Vs * cos(theta_rc) / BW_dop;   % ÌìÏß¿×¾¶³¤¶È
-IRW_r_theory = c/2/BW_r*0.886*1.18;
-IRW_a_theory = La/2*Vg/Vs*1.185;
-disp(['¾àÀëÏòÀíÂÛ·Ö±æÂÊ:',num2str(IRW_r_theory),'m']);
-disp(['·½Î»ÏòÀíÂÛ·Ö±æÂÊ:',num2str(IRW_a_theory),'m']);
-
+close all;clear all;
+%% 1. ä»¿çœŸå‚æ•° (å‚è€ƒ p142, table 6.1)
+center_Rc = 20e3;  % æ™¯ä¸­å¿ƒæ–œè·
+Vr = 150;       % ç­‰æ•ˆé›·è¾¾é€Ÿåº¦
+Tr = 2.5e-6;    % å‘å°„è„‰å†²æ—¶å®½
+Kr = 40e12;     % è·ç¦»è°ƒé¢‘ç‡
+f0 = 5.3e9;     % é›·è¾¾å·¥ä½œé¢‘ç‡
+BW_dop = 80;    % å¤šæ™®å‹’å¸¦å®½
+Fr = 120e6;  % è·ç¦»é‡‡æ ·ç‡
+Fa = 100;   % æ–¹ä½é‡‡æ ·ç‡
+Naz = 256;  % æ–¹ä½å‘é‡‡æ ·ç‚¹æ•°ï¼ˆè·ç¦»çº¿æ¡æ•°ï¼‰
+Nrg = 3072;  % è·ç¦»å‘é‡‡æ ·ç‚¹æ•°ï¼ˆè·ç¦»çº¿é‡‡æ ·ç‚¹æ•°ï¼‰
+theta_rc_deg = 5; % ä½æ–œè§†è§’5åº¦
+c = 299792458;    % å…‰é€Ÿ
+
+% derived params
+lambda = c / f0;
+theta_rc = theta_rc_deg * pi / 180;
+Vs = Vr;
+Vg = Vr;
+Np = Tr * Fr;   % è„‰å†²åºåˆ—é•¿åº¦ï¼ˆé‡‡æ ·ç‚¹æ•°ï¼‰
+alpha_os_r = Fr / (Kr*Tr);
+alpha_os_a = Fa / BW_dop;
+
+%% 2. ç”ŸæˆåŸå§‹é›·è¾¾æ•°æ®
+NUM_TARGETS = 7;    % ä»¿çœŸçš„ç›®æ ‡æ•°
+gap = 50 * 8;
+% gap = 25;
+rs = [-3, -2, -1, 0, 1, 2, 3]*gap;
+as = [-3, -2, -1, 0, 1, 2, 3]*gap*tan(theta_rc);
+parameters = struct(...
+    'center_Rc', center_Rc,...          % æ™¯ä¸­å¿ƒæ–œè·
+    'theta_rc_deg', theta_rc_deg,...    % æ–œè§†è§’
+    'Nrg', Nrg,...                      % è·ç¦»å‘é‡‡æ ·ç‚¹æ•°
+    'Naz', Naz,...                      % æ–¹ä½å‘é‡‡æ ·ç‚¹æ•°
+    'Vr', Vr,...                        % è½½æœºé€Ÿåº¦
+    'f0', f0,...                        % è½½æ³¢é¢‘ç‡
+    'Tr', Tr,...                        % å‘å°„è„‰å†²å®½åº¦
+    'Kr', Kr,...                        % å‘å°„è„‰å†²è°ƒé¢‘ç‡
+    'BW_dop', BW_dop,...                % å¤šæ™®å‹’å¸¦å®½
+    'alpha_os_r', alpha_os_r,...        % è·ç¦»å‘è¿‡é‡‡æ ·ç‡
+    'alpha_os_a', alpha_os_a,...        % æ–¹ä½å‘è¿‡é‡‡æ ·ç‡
+    'NUM_TARGETS', NUM_TARGETS,...      % ç‚¹ç›®æ ‡æ•°é‡
+    'rs', rs,...                        % ç‚¹ç›®æ ‡è·ç¦»å‘åæ ‡ï¼ˆmï¼‰
+    'as', as...                         % ç‚¹ç›®æ ‡æ–¹ä½å‘åæ ‡ï¼ˆmï¼‰
+);
+
+[ s0, f_etac, delta_r, delta_a, center_R0, center_Rc ] = generate_point_data(parameters);
+
+%% 3. æˆåƒå¤„ç†
+Rref = center_R0;
+s2 = wKA( s0, lambda, Kr, Vr, Fr, Fa, Rref, f_etac, Tr );
+
+
+%% show
+Vg = Vr;
+[Naz, Nrg] = size(s2);
+x = ((-Nrg / 2) : (Nrg / 2 - 1)) / Fr * c / 2;
+y = ((-Naz / 2 : Naz / 2 - 1)) / Fa * Vg;
+figure;
+imagesc(x, y, abs(s2));
+xlabel('è·ç¦»å‘ï¼ˆmï¼‰');ylabel('æ–¹ä½å‘ï¼ˆmï¼‰');
+title('å®Œæ•´å¤„ç†åçš„ç›®æ ‡');set(gca, 'YDir', 'normal');
+
+%% 4. ç‚¹ç›®æ ‡åˆ†æ
+% è®¡ç®—æ¯ä¸ªç‚¹å‡ºç°ä½ç½®çš„ç´¢å¼•å€¼
+ns = round(rs/delta_r) + (Nrg/2 + 1);
+ms = round(as/delta_a) + (Naz/2 + 1);
+len = 16;
+
+figure; % æ”¾å¤§æ˜¾ç¤ºæ¯ä¸ªç‚¹ç›®æ ‡
+for i = 1:NUM_TARGETS
+    target = s2(ms(i)-len/2:ms(i)+len/2-1, ns(i)-len/2:ns(i)+len/2-1);
+    subplot(ceil(NUM_TARGETS/3), 3, i);
+    imagesc(abs(target));
+    xlabel('è·ç¦»å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');ylabel('æ–¹ä½å‘ï¼ˆé‡‡æ ·ç‚¹ï¼‰');title(['ç›®æ ‡', num2str(i)]);
+end
+
+% å‡é‡‡æ ·åˆ†æç‚¹ç›®æ ‡Aï¼ˆå³ç¬¬ä¸€ä¸ªç‚¹ç›®æ ‡ï¼‰
+p = 1;
+target = s2(ms(p)-len/2:ms(p)+len/2-1, ns(p)-len/2:ns(p)+len/2-1);
+[image_upsample,signal_r,quality_r,signal_a,quality_a] = f_point_analyse(target,delta_r,delta_a);
+
+BW_r= abs(Kr*Tr);
+La = 0.886 * 2 * Vs * cos(theta_rc) / BW_dop;   % å¤©çº¿å­”å¾„é•¿åº¦
+IRW_r_theory = c/2/BW_r*0.886*1.18;
+IRW_a_theory = La/2*Vg/Vs*1.185;
+disp(['è·ç¦»å‘ç†è®ºåˆ†è¾¨ç‡:',num2str(IRW_r_theory),'m']);
+disp(['æ–¹ä½å‘ç†è®ºåˆ†è¾¨ç‡:',num2str(IRW_a_theory),'m']);
+
