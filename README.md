@@ -59,17 +59,17 @@ addpath(genpath('path/to/sar-algorithm'));
 
 ## Usage
 
-1. Run the main script:
+This repository contains implementations of three SAR imaging algorithms: RDA, CSA, and wKA. To use these algorithms:
+
+1. Add the project directory to your MATLAB path
+2. Run the corresponding simulation script:
 ```matlab
-main
+RDA_sim  % Range-Doppler Algorithm
+CS_sim   % Chirp Scaling Algorithm
+wKA_sim  % Wavenumber domain algorithm
 ```
 
-2. For specific algorithm simulation:
-```matlab
-RDA_sim  % For Range-Doppler Algorithm
-CS_sim   % For Chirp Scaling Algorithm
-wKA_sim  % For Wavenumber domain algorithm
-```
+For detailed parameter settings and examples, please refer to the comments in each script file.
 
 ## Contributing
 
